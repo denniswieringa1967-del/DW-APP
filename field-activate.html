@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b2242">
+  <title>Account activeren · DW Field App</title>
+  <style>
+    :root{--navy:#071d2e;--navy2:#0c2840;--blue:#1769ff;--ink:#0c1f3a;--muted:#68778f;--line:#dce5f0}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#edf3fb}
+    .shell{min-height:100vh;display:grid;place-items:center;padding:22px}.panel{width:min(430px,100%);min-height:650px;border-radius:24px;overflow:hidden;position:relative;padding:28px 22px;background:radial-gradient(circle at 90% 10%,rgba(23,105,255,.22),transparent 30%),linear-gradient(160deg,#071d2e,#0b315c);box-shadow:0 26px 70px rgba(7,29,46,.22)}
+    .panel:before{content:"";position:absolute;inset:0;opacity:.18;background:repeating-linear-gradient(35deg,transparent 0 46px,rgba(255,255,255,.2) 47px 49px,transparent 50px 88px);pointer-events:none}.brand{position:relative;display:flex;align-items:center;gap:11px;color:#fff;margin-bottom:34px}.mark{width:48px;height:48px;border:2px solid #fff;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:900;letter-spacing:.04em;background:linear-gradient(145deg,#0a1d39,#1769ff)}.brand strong{display:block;font-size:18px}.brand small{display:block;color:#9fc7ff;font-weight:800;letter-spacing:.12em;font-size:9px;margin-top:2px}.card{position:relative;background:#fff;border-radius:18px;padding:26px 22px;box-shadow:0 20px 50px rgba(0,0,0,.18)}h1{font-size:25px;margin:0 0 8px;letter-spacing:-.03em}.intro{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.55}.status{padding:12px 14px;border-radius:12px;background:#eef5ff;color:#174a91;font-size:13px;margin-bottom:16px}.status.error{background:#fff0f0;color:#9f2f2f}.status.success{background:#eaf8f1;color:#126643}label{display:block;font-size:13px;font-weight:800;margin:14px 0 7px}input{width:100%;min-height:50px;border:1px solid #cbd9ea;border-radius:10px;padding:0 13px;font:inherit}input:focus{outline:3px solid rgba(23,105,255,.16);border-color:var(--blue)}button{width:100%;min-height:52px;border:0;border-radius:11px;background:linear-gradient(135deg,#1769ff,#0f5be4);color:#fff;font-weight:850;font-size:15px;margin-top:18px;cursor:pointer;box-shadow:0 12px 28px rgba(23,105,255,.2)}button:disabled{opacity:.55;cursor:not-allowed}.fine{position:relative;margin-top:18px;text-align:center;color:#b8cee8;font-size:10px}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <section class="panel">
+    <div class="brand"><div class="mark">DW</div><div><strong>DW Field App</strong><small>DW MARKETING · VEILIGE ACTIVERING</small></div></div>
+    <div class="card">
+      <h1 id="title">Uw account activeren</h1>
+      <p class="intro" id="intro">Kies zelf uw persoonlijke wachtwoord. Daarna gaat u direct naar uw eigen Field App-omgeving.</p>
+      <div class="status" id="status">Beveiligde uitnodiging controleren…</div>
+      <form id="form" hidden>
+        <label for="password">Nieuw wachtwoord</label>
+        <input id="password" type="password" autocomplete="new-password" minlength="10" required placeholder="Minimaal 10 tekens">
+        <label for="confirm">Wachtwoord herhalen</label>
+        <input id="confirm" type="password" autocomplete="new-password" minlength="10" required>
+        <button id="submit" type="submit">Wachtwoord instellen en doorgaan</button>
+      </form>
+    </div>
+    <p class="fine">DW Marketing Leads Generator · beveiligde werkomgeving</p>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(async()=>{
+  const status=document.getElementById('status'), form=document.getElementById('form'), button=document.getElementById('submit');
+  const mode=new URLSearchParams(location.search).get('mode')||'invite';
+  if(mode==='recovery'){
+    document.getElementById('title').textContent='Nieuw wachtwoord kiezen';
+    document.getElementById('intro').textContent='Kies een nieuw persoonlijk wachtwoord. Daarna gaat u direct terug naar de DW Field App.';
+  }
+  function show(message,type=''){status.textContent=message;status.className='status'+(type?' '+type:'')}
+  try{
+    if(!window.supabase||!window.DW_CONFIG?.supabaseUrl||!window.DW_CONFIG?.supabaseAnonKey)throw new Error('Databaseverbinding ontbreekt.');
+    const client=window.supabase.createClient(window.DW_CONFIG.supabaseUrl,window.DW_CONFIG.supabaseAnonKey,{auth:{detectSessionInUrl:true,persistSession:true}});
+    const url=new URL(location.href);
+    const code=url.searchParams.get('code');
+    if(code){const {error}=await client.auth.exchangeCodeForSession(code);if(error)throw error;}
+    await new Promise(r=>setTimeout(r,120));
+    const {data:{session},error:sessionError}=await client.auth.getSession();
+    if(sessionError||!session?.user?.id)throw new Error('Deze activatielink is verlopen of niet geldig. Vraag de beheerder om een nieuwe uitnodiging of herstel-link.');
+    const {data:profile,error:profileError}=await client.from('field_users').select('user_id,is_active,role,display_name,email').eq('user_id',session.user.id).maybeSingle();
+    if(profileError)throw profileError;
+    if(!profile||profile.is_active===false)throw new Error('Dit medewerkersaccount is niet actief. Neem contact op met de beheerder.');
+    show(`Welkom ${profile.display_name||session.user.email}. Kies nu uw eigen wachtwoord.`,'success');
+    form.hidden=false;
+    document.getElementById('password').focus();
+    form.addEventListener('submit',async(event)=>{
+      event.preventDefault();
+      const password=document.getElementById('password').value, confirm=document.getElementById('confirm').value;
+      if(password.length<10){show('Gebruik minimaal 10 tekens.','error');return;}
+      if(password!==confirm){show('De wachtwoorden zijn niet gelijk.','error');return;}
+      button.disabled=true;button.textContent='Bezig met opslaan…';
+      try{
+        const {error}=await client.auth.updateUser({password});if(error)throw error;
+        sessionStorage.setItem('vt-rc2-authenticated','1');
+        sessionStorage.setItem('vt-rc2-role',profile.role==='admin'?'admin':'walker');
+        sessionStorage.setItem('vt-rc2-entry',profile.role==='admin'?'admin':'employee');
+        show('Wachtwoord opgeslagen. De Field App wordt geopend…','success');
+        setTimeout(()=>location.replace('index.html'),500);
+      }catch(error){show(error.message||'Wachtwoord kon niet worden opgeslagen.','error');button.disabled=false;button.textContent='Wachtwoord instellen en doorgaan';}
+    });
+  }catch(error){show(error.message||'Activeren is niet gelukt.','error');}
+})();
+</script>
+</body>
+</html>
