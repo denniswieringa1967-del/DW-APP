@@ -1,6 +1,6 @@
 window.DW_CONFIG = {
   /*
-   * DW Field App v4
+   * DW APP v4
    *
    * integrationMode:
    *   "local" = veilig lokaal testen, geen Supabase-writes
@@ -26,7 +26,7 @@ window.DW_CONFIG = {
   photoBucket: "",
 
   sourceLabel: "Buitendienst",
-  platformLabel: "DW Field App",
+  platformLabel: "DW APP",
   defaultCampaign: "FIELD-APP-PRODUCTIE",
   APP_VERSION: "5.1.0-visual"
 };

@@ -1,4 +1,4 @@
-/* DW Field App v5.7 — juridische liveganglaag + snelle buitendienst */
+/* DW APP v5.7 — juridische liveganglaag + snelle buitendienst */
 (() => {
   "use strict";
 
@@ -239,7 +239,7 @@
 })();
 
 /* ======================================================================
-   DW Field App v5.8 — operationele werklaag teruggebracht
+   DW APP v5.8 — operationele werklaag teruggebracht
    - Adressen & route
    - Eigen acquisitie
    - Mijn inschrijvingen
@@ -351,7 +351,7 @@
         if (!error) profile = data || null;
       }
     } catch (error) {
-      console.warn("DW Field App operationele sessiecontrole mislukt", error);
+      console.warn("DW APP operationele sessiecontrole mislukt", error);
     }
   }
 

@@ -1,15 +1,10 @@
-DW APP — GITHUB LIVE KLAAR
-26-09-2026
+DW APP — GitHub Pages finale versie v5.13.3
 
-Dit pakket bevat de complete bestanden voor de bestaande GitHub repository DW-APP.
-Upload de INHOUD van deze map naar de root van de repository.
+Deze map bevat de complete bestanden voor de DW APP.
+Wijzigingen in deze versie:
+- DW Field App overal gewijzigd naar DW APP.
+- Originele DW-logo behouden.
+- Alleen de buitenhoeken van het originele logo zichtbaar afgerond.
+- Service-worker vernieuwd om oude cache te vermijden.
 
-Belangrijk:
-- styles.css is aanwezig
-- app.js, config.js, data-service.js, scans.js en production-adapter.js zijn aanwezig
-- manifest.webmanifest + service-worker.js zijn aanwezig voor mobiel gebruik
-- de oude lokale demo-login fallback is verwijderd uit de publieke browsercode
-- Supabase gebruikt alleen de publishable/anon browser key; geen service_role key
-- bestaande live integratiemodus is behouden
-
-Na upload/commit bouwt GitHub Pages automatisch opnieuw.
+Upload de UITGEPAKTE bestanden naar de root van de GitHub repository DW-APP en vervang bestanden met dezelfde naam.

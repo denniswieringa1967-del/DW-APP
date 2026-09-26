@@ -237,7 +237,7 @@
       expectedCommission: hasAppointment && visit.route === "particulier" ? 50 : 0,
       campaign: visit.campaign || cfg.defaultCampaign || "Buitendienst",
       interests: (visit.products || []).join(", "),
-      platform: cfg.platformLabel || "DW Field App",
+      platform: cfg.platformLabel || "DW APP",
       video: null,
       qualification: hasAppointment ? "Gekwalificeerd" : "Nog beoordelen",
       utmSource: "buitendienst",

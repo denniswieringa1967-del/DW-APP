@@ -46,7 +46,7 @@ body{background:var(--bg)}.brand-logo{object-fit:contain;flex-shrink:0}.main{max
 .field-login-shell{min-height:100vh;display:grid;place-items:center;padding:32px 18px;background:linear-gradient(135deg,#eef2f8,#f9fbfd)}.field-login-card{width:100%;background:white;padding:36px;border:1px solid var(--line);border-radius:22px;box-shadow:0 20px 60px #10203810}.field-login-card h1{font-size:29px;letter-spacing:-.03em;text-align:center}.field-login-card .eyebrow{text-align:center;color:#185bb6;font-size:11px;letter-spacing:.12em;margin-top:25px}.field-login-intro{font-size:15px;line-height:1.7;color:var(--muted);text-align:center}.field-login-card label{display:block;font-size:14px;font-weight:650;margin:16px 0}.field-login-card input{margin-top:8px}.field-login-card button[type=submit]{width:100%;border:0;border-radius:11px;background:#135cd4;color:white;font-weight:700;min-height:52px}.field-login-card>small{display:block;text-align:center;color:var(--muted);margin-top:24px}.field-auth-splash{position:fixed;inset:0;background:#f4f6f8;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}.field-auth-splash img{width:64px;height:64px;object-fit:contain}.field-auth-ready .field-auth-splash{display:none}.field-auth-checking .field-login-shell{visibility:hidden}@media(max-width:480px){.field-login-card{padding:26px 20px}}
 
 /* ======================================================================
-   DW Field App v5.2 — definitief startscherm particulier / zakelijk
+   DW APP v5.2 — definitief startscherm particulier / zakelijk
    Alleen visuele presentatie van de twee hoofdroutekaarten.
    Scanlogica, productie-adapter en dataflow blijven onaangeroerd.
    ====================================================================== */
@@ -218,7 +218,7 @@ body{background:var(--bg)}.brand-logo{object-fit:contain;flex-shrink:0}.main{max
 
 
 /* ======================================================================
-   DW Field App v5.3 RC — professionele scanselectie en scanflow
+   DW APP v5.3 RC — professionele scanselectie en scanflow
    Visuele polish voor zakelijke scans en vraagpagina's.
    Geen wijziging aan scanlogica, productie-adapter of dataflow.
    ====================================================================== */
@@ -341,7 +341,7 @@ body{background:var(--bg)}.brand-logo{object-fit:contain;flex-shrink:0}.main{max
 }
 
 /* ======================================================================
-   DW Field App v5.9.2 — AI MASTER VISUAL RESTORE
+   DW APP v5.9.2 — AI MASTER VISUAL RESTORE
    Alleen visuele styling. Geen scanlogica, rechten of datastromen gewijzigd.
    Masterstijl: donker marineblauw + helder technologisch blauw + witruimte.
    Verduurzamen blijft familie van dezelfde stijl met subtiel aqua/turquoise.
@@ -511,7 +511,7 @@ body{
 }
 
 /* ======================================================================
-   DW Field App v5.9.3 — routekleuren exact terug naar eerdere goedgekeurde look
+   DW APP v5.9.3 — routekleuren exact terug naar eerdere goedgekeurde look
    Alleen visuele kleuren van de twee startkaarten en CTA's.
    Geen wijziging aan scanlogica, rechten, dataflow of productie-instellingen.
    ====================================================================== */
@@ -559,7 +559,7 @@ body{
 }
 
 /* ======================================================================
-   DW Field App v5.9.4 — mobiele hoofdnavigatie 5 items op één rij
+   DW APP v5.9.4 — mobiele hoofdnavigatie 5 items op één rij
    Behoudt v5.9.3 routekleuren en alle bestaande app-logica.
    ====================================================================== */
 .bottom-nav{
@@ -593,7 +593,7 @@ body{
 }
 
 /* ======================================================================
-   DW Field App v5.11.1 — Werk / beheer schermen
+   DW APP v5.11.1 — Werk / beheer schermen
    Alleen vormgeving. Geen scan-, login-, rechten- of productielogica gewijzigd.
    ====================================================================== */
 .ops-page{display:block;max-width:1040px;margin:0 auto;padding:2px 0 24px}
