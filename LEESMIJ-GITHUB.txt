@@ -1,0 +1,15 @@
+DW APP — GITHUB LIVE KLAAR
+26-09-2026
+
+Dit pakket bevat de complete bestanden voor de bestaande GitHub repository DW-APP.
+Upload de INHOUD van deze map naar de root van de repository.
+
+Belangrijk:
+- styles.css is aanwezig
+- app.js, config.js, data-service.js, scans.js en production-adapter.js zijn aanwezig
+- manifest.webmanifest + service-worker.js zijn aanwezig voor mobiel gebruik
+- de oude lokale demo-login fallback is verwijderd uit de publieke browsercode
+- Supabase gebruikt alleen de publishable/anon browser key; geen service_role key
+- bestaande live integratiemodus is behouden
+
+Na upload/commit bouwt GitHub Pages automatisch opnieuw.

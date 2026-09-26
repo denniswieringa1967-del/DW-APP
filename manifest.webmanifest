@@ -1,0 +1,18 @@
+{
+  "name": "DW APP",
+  "short_name": "DW APP",
+  "description": "Mobiele buitendienstapp van DW Marketing",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#071a33",
+  "icons": [
+    {
+      "src": "dw-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
