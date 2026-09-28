@@ -5,14 +5,14 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f7fb",
+  "background_color": "#071a33",
   "theme_color": "#071a33",
   "icons": [
     {
       "src": "dw-logo.png",
       "sizes": "any",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
