@@ -5,13 +5,13 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#071a33",
-  "theme_color": "#071a33",
+  "background_color": "#071d2e",
+  "theme_color": "#071d2e",
   "icons": [
     {
-      "src": "dw-logo.png",
+      "src": "dw-app-icon.svg",
       "sizes": "any",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
