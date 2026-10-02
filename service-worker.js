@@ -1,8 +1,8 @@
-// DW APP cache worker 2026-10-02 v5.13.8
-const CACHE='dw-app-live-v5-13-8';
+// DW APP cache worker 2026-10-02 v5.13.9
+const CACHE='dw-app-live-v5-13-9';
 const ASSETS=[
   './','./index.html','./styles.css','./config.js','./data-service.js',
-  './scans.js','./production-adapter.js','./app.js','./dw-logo.png',
+  './scans.js','./production-adapter.js','./app.js','./dw-logo.png','./dw-master-logo.jpg','./dw-app-icon.svg',
   './manifest.webmanifest','./dw-app-icon.svg','./field-login.html','./medewerker-login.html',
   './beheer-login.html','./field-activate.html','./quick-lead.html'
 ];
