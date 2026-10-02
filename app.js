@@ -75,7 +75,157 @@
     $("#newVisit").onclick=renderRoute;$("#openDrafts").onclick=()=>renderVisits(true);bind(".startRoute","click",e=>start(e.currentTarget.dataset.route));focusMain()
   }
   function renderRoute(){hideNav(true);main.innerHTML=`<div class="screen-card"><div class="screen-head"><div class="screen-number">1</div><div><span class="kicker">Nieuw bezoek</span><h2>Wie staat er voor je?</h2><p>Één keuze. De rest van de app past zich automatisch aan.</p></div></div><div class="screen-body"><div class="grid"><article class="card route-card route-card-home"><div><div class="route-art route-art-home" aria-hidden="true"></div><span class="route-label">Woningbezoek</span><h3>Verduurzamingsscan</h3><p>VerduurzamenThuis · Woningcheck</p></div><button class="primary startRoute route-cta route-cta-home" data-route="particulier">Particulier</button></article><article class="card route-card route-card-business"><div><div class="route-art route-art-business" aria-hidden="true"></div><span class="route-label">Bedrijfsbezoek</span><h3>Zakelijke scans</h3><p>AI of Energie & Compliance</p></div><button class="primary startRoute route-cta route-cta-business" data-route="zakelijk">Zakelijk</button></article></div></div></div>${actions({onBack:true,back:"Annuleren",save:false})}`;bind(".startRoute","click",e=>start(e.currentTarget.dataset.route));wireActions({onBack:renderHome});focusMain()}
-  function start(route){visit=newVisit(route);qIndex=0;queue=[];renderContact()}
+  function start(route){visit=newVisit(route);qIndex=0;queue=[];if(route==="particulier")return renderParticulierChoice();renderContact()}
+
+  function renderParticulierChoice(){
+    hideNav(true);
+    main.innerHTML=`<div class="screen-card"><div class="screen-head"><div class="screen-number">1</div><div><span class="kicker">Particulier · verduurzaming</span><h2>Wat wilt u vastleggen?</h2><p>Kies de korte interesselead voor deze opdracht of de bestaande volledige Woningcheck.</p></div></div><div class="screen-body"><div class="grid">
+      <article class="card route-card route-card-home"><div><div class="route-art route-art-home" aria-hidden="true"></div><span class="route-label">Snel · ±30 sec.</span><h3>Snelle interesselead</h3><p>Alleen naam, telefoon en adres. Geen afspraak en geen scan nodig.</p></div><button id="startQuickLead" class="primary">Snelle lead €60</button></article>
+      <article class="card route-card route-card-home"><div><div class="route-art route-art-home" aria-hidden="true"></div><span class="route-label">Uitgebreid</span><h3>Volledige Woningcheck</h3><p>De bestaande particuliere scan met maatregelen, vragen, dossier en rapportflow.</p></div><button id="startFullWoningcheck" class="secondary">Volledige Woningcheck</button></article>
+    </div></div></div>${actions({onBack:true,back:"Terug",save:false})}`;
+    $("#startQuickLead")?.addEventListener("click",renderIntegratedQuickLead);
+    $("#startFullWoningcheck")?.addEventListener("click",renderContact);
+    wireActions({onBack:renderRoute});
+    focusMain();
+  }
+
+  function renderIntegratedQuickLead(){
+    visit.product="quicklead";
+    visit.visit_status="Interesse";
+    visit.campaign=visit.campaign||"VERDUURZAMING-OPDRACHTGEVER-60";
+    const c=visit.contact||{};
+    const content=`<div class="screen-card"><div class="screen-head"><div class="screen-number">€60</div><div><span class="kicker">Snelle verduurzamingslead</span><h2>Interesse vastleggen</h2><p>Geen afspraak. Geen volledige Woningcheck. Alleen de gegevens voor terugbelinformatie.</p></div></div><div class="screen-body">
+      <div class="form-grid">
+        <div class="field full"><label>Naam bewoner *</label><input id="quickName" value="${esc(c.name)}" autocomplete="name"></div>
+        <div class="field"><label>Mobiel nummer *</label><input id="quickPhone" type="tel" value="${esc(c.phone)}" autocomplete="tel"></div>
+        <div class="field"><label>E-mail <span class="field-hint">optioneel</span></label><input id="quickEmail" type="email" value="${esc(c.email)}" autocomplete="email"></div>
+        <div class="field"><label>Straat *</label><input id="quickStreet" value="${esc(c.street)}" autocomplete="street-address"></div>
+        <div class="field"><label>Huisnummer *</label><input id="quickHouse" value="${esc(c.house_number)}"></div>
+        <div class="field"><label>Postcode *</label><input id="quickPostcode" value="${esc(c.postcode)}" autocomplete="postal-code"></div>
+        <div class="field"><label>Plaats <span class="field-hint">optioneel</span></label><input id="quickCity" value="${esc(c.city)}" autocomplete="address-level2"></div>
+        <div class="field full"><label>Campagne / wijk</label><input id="quickCampaign" value="${esc(visit.campaign)}"></div>
+      </div>
+      <label class="consent-card" style="margin-top:16px"><input id="quickConsent" type="checkbox" ${visit.consent.contact?'checked':''}><span><strong>Bewoner wil vrijblijvend informatie ontvangen *</strong><p>De bewoner vraagt om teruggebeld te worden over verduurzaming/subsidies en is geïnformeerd over de verwerking van deze contactgegevens. <a class="legal-link" href="privacy.html" target="_blank" rel="noopener">Privacyverklaring</a></p></span></label>
+      <div id="validation"></div>
+    </div></div>`;
+    main.innerHTML=flowShell(content,0,"Deze route is bewust kort. De lead gaat naar uw eigen DW-database. Salesdock voegen we later als tweede bestemming toe.")+actions({onBack:true,onNext:true,next:"Lead opslaan",save:false});
+    bind(".legal-link","click",e=>e.stopPropagation());
+    wireActions({onBack:renderParticulierChoice,onNext:saveIntegratedQuickLead});
+    focusMain();
+  }
+
+  function captureIntegratedQuickLead(){
+    Object.assign(visit.contact,{
+      name:val("quickName"),
+      phone:val("quickPhone"),
+      email:val("quickEmail"),
+      street:val("quickStreet"),
+      house_number:val("quickHouse"),
+      postcode:val("quickPostcode").toUpperCase(),
+      city:val("quickCity")
+    });
+    visit.campaign=val("quickCampaign")||"VERDUURZAMING-OPDRACHTGEVER-60";
+    visit.consent.contact=!!$("#quickConsent")?.checked;
+    visit.consent.privacy=visit.consent.contact;
+    visit.consent.privacy_version=LEGAL_VERSION;
+    visit.consent.captured_at=visit.consent.contact?new Date().toISOString():"";
+    visit.notes="Interesselead verduurzaming · geen afspraak gemaakt · terugbelinformatie gevraagd.";
+  }
+
+  async function saveIntegratedQuickLead(){
+    captureIntegratedQuickLead();
+    const errs=[];
+    if(!visit.contact.name)errs.push("naam");
+    if(!visit.contact.phone)errs.push("telefoonnummer");
+    if(!visit.contact.street)errs.push("straat");
+    if(!visit.contact.house_number)errs.push("huisnummer");
+    if(!visit.contact.postcode)errs.push("postcode");
+    if(visit.contact.email&&!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(visit.contact.email))errs.push("geldig e-mailadres");
+    if(!visit.consent.contact)errs.push("toestemming voor contact");
+    if(errs.length)return showValidation(`Controleer: ${errs.join(", ")}.`);
+
+    const next=$("#flowNext");
+    if(next){next.disabled=true;next.textContent="Opslaan…"}
+    visit.status="afgerond";
+    visit.sync_status="pending";
+    persist();
+
+    try{
+      const lead=await window.DW_DATA.createLead({
+        company:"Particulier",
+        contact_name:visit.contact.name,
+        email:visit.contact.email||"",
+        phone:visit.contact.phone,
+        scan_type:"Verduurzaming interesselead",
+        status:"Nieuwe lead",
+        revenue:0,
+        source:"Buitendienst"
+      });
+      await window.DW_DATA.upsertLeadMeta(lead.id,{
+        externalId:visit.id,
+        formId:"dw-quick-lead-v1",
+        partner:null,
+        appointmentStatus:"Geen afspraak",
+        appointmentDate:null,
+        expectedCommission:60,
+        campaign:visit.campaign,
+        interests:"Interesse verduurzaming / terugbelinformatie",
+        platform:cfg.platformLabel||"DW APP",
+        video:null,
+        qualification:"Interesselead",
+        utmSource:"buitendienst",
+        utmMedium:"field-app",
+        utmCampaign:visit.campaign,
+        utmContent:"quick-lead",
+        automationSource:"dw-quick-lead-v1",
+        automationStatus:"Ontvangen",
+        capturedAt:visit.created_at
+      });
+      const address=[visit.contact.street,visit.contact.house_number,visit.contact.postcode,visit.contact.city].filter(Boolean).join(" ");
+      try{
+        const db=window.DW_DATA?.client;
+        if(db){
+          await db.from("lead_meta").update({address,updated_at:new Date().toISOString()}).eq("lead_id",lead.id);
+        }
+        await window.DW_DATA.updateLead(lead.id,{notes:[
+          "[QUICK_LEAD_START]",
+          "Type: Verduurzaming interesselead",
+          `Naam: ${visit.contact.name}`,
+          `Telefoon: ${visit.contact.phone}`,
+          `E-mail: ${visit.contact.email||""}`,
+          `Adres: ${address}`,
+          `Campagne: ${visit.campaign}`,
+          "Geen afspraak gemaakt",
+          "Contacttoestemming: Ja",
+          "[QUICK_LEAD_EINDE]"
+        ].join("\\n")});
+      }catch(metaErr){console.warn("Aanvullende quick-lead metadata kon niet volledig worden bijgewerkt.",metaErr)}
+      visit.production_lead_id=lead.id;
+      visit.sync_status="synced";
+      persist();
+      renderQuickLeadSuccess();
+    }catch(err){
+      console.error("QUICK LEAD OPSLAAN FOUT:",err);
+      visit.sync_status="pending";
+      persist();
+      if(next){next.disabled=false;next.textContent="Lead opslaan"}
+      showValidation("Opslaan niet gelukt: "+(err?.message||String(err)));
+    }
+  }
+
+  function renderQuickLeadSuccess(){
+    const c=visit.contact||{};
+    const address=[c.street,c.house_number,c.postcode,c.city].filter(Boolean).join(" ");
+    main.innerHTML=`<div class="screen-card"><div class="screen-head"><div class="screen-number">✓</div><div><span class="kicker">Snelle lead opgeslagen</span><h2>Klaar voor de volgende deur</h2><p>De interesselead staat in uw DW-database. Salesdock kan later als tweede bestemming worden gekoppeld.</p></div></div><div class="screen-body"><div class="callout success"><strong>${esc(c.name)}</strong><br>${esc(c.phone)}<br>${esc(address)}${visit.production_lead_id?`<br><small>DW lead-ID: ${esc(visit.production_lead_id)}</small>`:""}</div><div class="form-grid" style="margin-top:14px"><button id="quickNext" class="primary">Volgende snelle lead</button><button id="quickCopy" class="secondary">Kopieer voor Salesdock</button><button id="quickHome" class="secondary">Terug naar start</button></div></div></div>`;
+    hideNav(false);
+    $("#quickNext")?.addEventListener("click",()=>{visit=newVisit("particulier");visit.campaign="VERDUURZAMING-OPDRACHTGEVER-60";renderIntegratedQuickLead()});
+    $("#quickHome")?.addEventListener("click",renderHome);
+    $("#quickCopy")?.addEventListener("click",async()=>{
+      const text=[`Naam: ${c.name||""}`,`Telefoon: ${c.phone||""}`,`E-mail: ${c.email||""}`,`Adres: ${address}`,`Campagne: ${visit.campaign||""}`].join("\\n");
+      try{await navigator.clipboard.writeText(text);toast("Lead gekopieerd voor Salesdock.")}catch{toast("Kopiëren is niet gelukt.")}
+    });
+    focusMain();
+  }
 
   function renderContact(){hideNav(true);const b=visit.route==="zakelijk";const noTalk=["Niemand thuis","Geen interesse"].includes(visit.visit_status);const content=`<div class="screen-card"><div class="screen-head"><div class="screen-number">1</div><div><span class="kicker">${b?'Zakelijk bezoek':'Particulier bezoek'}</span><h2>Contact en bezoekstatus</h2><p>Eerst de basis. Bij niemand thuis of geen interesse kun je het bezoek direct afronden.</p></div></div><div class="screen-body">
       <div class="field full"><span class="field-label">Uitkomst aan de deur</span><div class="choice-grid" id="visitStatusChoices">${["Gesprek gevoerd","Afspraak gemaakt","Terugkomen","Niemand thuis","Geen interesse"].map(x=>`<button class="choice ${visit.visit_status===x?'selected':''}" type="button" data-status="${esc(x)}"><span>${esc(x)}</span></button>`).join('')}</div></div>
