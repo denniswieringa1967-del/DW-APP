@@ -52,6 +52,7 @@
 
   function stepsFor(){
     if(!visit)return[];
+    if(visit.product==="quicklead")return["Interesselead"];
     if(visit.route==="particulier")return["Contact","Maatregelen","Woningcheck","Dossier","Controle"];
     return["Contact",visit.product==="ai"?"AI-scan":visit.product==="energie"?"Energiescan":"Scan","Dossier","Controle"];
   }
@@ -80,7 +81,7 @@
   function renderParticulierChoice(){
     hideNav(true);
     main.innerHTML=`<div class="screen-card"><div class="screen-head"><div class="screen-number">1</div><div><span class="kicker">Particulier · verduurzaming</span><h2>Wat wilt u vastleggen?</h2><p>Kies de korte interesselead voor deze opdracht of de bestaande volledige Woningcheck.</p></div></div><div class="screen-body"><div class="grid">
-      <article class="card route-card route-card-home"><div><div class="route-art route-art-home" aria-hidden="true"></div><span class="route-label">Snel · ±30 sec.</span><h3>Snelle interesselead</h3><p>Alleen naam, telefoon en adres. Geen afspraak en geen scan nodig.</p></div><button id="startQuickLead" class="primary">Snelle lead €60</button></article>
+      <article class="card route-card route-card-home"><div><div class="route-art route-art-home" aria-hidden="true"></div><span class="route-label">Snel · ±30 sec.</span><h3>Snelle interesselead</h3><p>Alleen naam, telefoon en adres. Geen afspraak en geen scan nodig.</p></div><button id="startQuickLead" class="primary">Snelle interesselead</button></article>
       <article class="card route-card route-card-home"><div><div class="route-art route-art-home" aria-hidden="true"></div><span class="route-label">Uitgebreid</span><h3>Volledige Woningcheck</h3><p>De bestaande particuliere scan met maatregelen, vragen, dossier en rapportflow.</p></div><button id="startFullWoningcheck" class="secondary">Volledige Woningcheck</button></article>
     </div></div></div>${actions({onBack:true,back:"Terug",save:false})}`;
     $("#startQuickLead")?.addEventListener("click",renderIntegratedQuickLead);
@@ -94,7 +95,7 @@
     visit.visit_status="Interesse";
     visit.campaign=visit.campaign||"VERDUURZAMING-OPDRACHTGEVER-60";
     const c=visit.contact||{};
-    const content=`<div class="screen-card"><div class="screen-head"><div class="screen-number">€60</div><div><span class="kicker">Snelle verduurzamingslead</span><h2>Interesse vastleggen</h2><p>Geen afspraak. Geen volledige Woningcheck. Alleen de gegevens voor terugbelinformatie.</p></div></div><div class="screen-body">
+    const content=`<div class="screen-card"><div class="screen-head"><div class="screen-number">✓</div><div><span class="kicker">Snelle verduurzamingslead</span><h2>Interesse vastleggen</h2><p>Geen afspraak. Geen volledige Woningcheck. Alleen de gegevens voor terugbelinformatie.</p></div></div><div class="screen-body">
       <div class="form-grid">
         <div class="field full"><label>Naam bewoner *</label><input id="quickName" value="${esc(c.name)}" autocomplete="name"></div>
         <div class="field"><label>Mobiel nummer *</label><input id="quickPhone" type="tel" value="${esc(c.phone)}" autocomplete="tel"></div>
@@ -103,7 +104,6 @@
         <div class="field"><label>Huisnummer *</label><input id="quickHouse" value="${esc(c.house_number)}"></div>
         <div class="field"><label>Postcode *</label><input id="quickPostcode" value="${esc(c.postcode)}" autocomplete="postal-code"></div>
         <div class="field"><label>Plaats <span class="field-hint">optioneel</span></label><input id="quickCity" value="${esc(c.city)}" autocomplete="address-level2"></div>
-        <div class="field full"><label>Campagne / wijk</label><input id="quickCampaign" value="${esc(visit.campaign)}"></div>
       </div>
       <label class="consent-card" style="margin-top:16px"><input id="quickConsent" type="checkbox" ${visit.consent.contact?'checked':''}><span><strong>Bewoner wil vrijblijvend informatie ontvangen *</strong><p>De bewoner vraagt om teruggebeld te worden over verduurzaming/subsidies en is geïnformeerd over de verwerking van deze contactgegevens. <a class="legal-link" href="privacy.html" target="_blank" rel="noopener">Privacyverklaring</a></p></span></label>
       <div id="validation"></div>
@@ -124,7 +124,7 @@
       postcode:val("quickPostcode").toUpperCase(),
       city:val("quickCity")
     });
-    visit.campaign=val("quickCampaign")||"VERDUURZAMING-OPDRACHTGEVER-60";
+    visit.campaign=visit.campaign||"VERDUURZAMING-OPDRACHTGEVER-60";
     visit.consent.contact=!!$("#quickConsent")?.checked;
     visit.consent.privacy=visit.consent.contact;
     visit.consent.privacy_version=LEGAL_VERSION;
