@@ -1,5 +1,5 @@
-// DW APP cache worker 2026-10-02 v5.13.5
-const CACHE='dw-app-live-v5-13-5';
+// DW APP cache worker 2026-10-02 v5.13.6
+const CACHE='dw-app-live-v5-13-6';
 const ASSETS=[
   './','./index.html','./styles.css','./config.js','./data-service.js',
   './scans.js','./production-adapter.js','./app.js','./dw-logo.png',
