@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1730">
+<title>DW APP · Snelle verduurzamingslead</title>
+<link rel="icon" href="dw-logo.png" type="image/png">
+<style>
+:root{--navy:#0b1730;--blue:#245eea;--line:#dbe4f1;--muted:#60708a;--bg:#f4f7fc;--ok:#087f75}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#17315c}
+.wrap{max-width:760px;margin:auto;padding:18px}.head{background:linear-gradient(120deg,#09172f,#102447);color:#fff;padding:22px;border-radius:18px;margin-bottom:16px}.head img{width:78px;height:50px;object-fit:contain}.head h1{margin:8px 0 4px;font-size:28px}.head p{margin:0;color:#d4deef}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 8px 25px rgba(13,40,89,.06)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
+label{display:block;font-size:13px;font-weight:700;color:#536582}input{width:100%;margin-top:6px;padding:13px;border:1px solid #cad6e6;border-radius:10px;font-size:16px;color:#17315c}
+.note{font-size:13px;color:var(--muted);line-height:1.5}.consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:12px;background:#f9fbfe}.consent input{width:auto;margin-top:3px}
+button{width:100%;margin-top:16px;padding:14px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:800;font-size:16px;cursor:pointer}.msg{margin-top:12px;padding:12px;border-radius:10px;display:none}.msg.ok{display:block;background:#edf8f5;color:#075f59}.msg.err{display:block;background:#fff0f2;color:#a62032}
+.back{display:inline-block;margin:0 0 14px;color:#245eea;font-weight:700;text-decoration:none}@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.wrap{padding:12px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="data-service.js"></script>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="./">← Terug naar DW APP</a>
+<section class="head"><img src="dw-logo.png" alt="DW Marketing"><h1>Snelle verduurzamingslead</h1><p>Alleen interesse vastleggen. Geen afspraak en geen uitgebreide scan.</p></section>
+<form id="leadForm" class="card">
+<div class="grid">
+<label class="full">Naam bewoner *<input id="name" autocomplete="name" required></label>
+<label>Mobiel nummer *<input id="phone" type="tel" autocomplete="tel" required></label>
+<label>E-mail <span style="font-weight:400">(optioneel)</span><input id="email" type="email" autocomplete="email"></label>
+<label>Straat *<input id="street" autocomplete="street-address" required></label>
+<label>Huisnummer *<input id="house" required></label>
+<label>Postcode *<input id="postcode" autocomplete="postal-code" required></label>
+<label>Plaats <span style="font-weight:400">(optioneel)</span><input id="city" autocomplete="address-level2"></label>
+<label class="full">Campagne / wijk<input id="campaign" value="VERDUURZAMING-OPDRACHTGEVER-60"></label>
+</div>
+<label class="consent"><input id="consent" type="checkbox" required><span><strong>Bewoner wil vrijblijvend informatie ontvangen.</strong><br><span class="note">De bewoner vraagt om teruggebeld te worden over verduurzaming en subsidies. Alleen noodzakelijke contactgegevens worden hiervoor verwerkt.</span></span></label>
+<button id="save" type="submit">Lead opslaan</button>
+<div id="message" class="msg"></div>
+</form>
+</div>
+<script>
+(async()=>{
+  const cfg=window.DW_CONFIG||{}, form=document.getElementById('leadForm'), msg=document.getElementById('message'), btn=document.getElementById('save');
+  const show=(t,ok)=>{msg.textContent=t;msg.className='msg '+(ok?'ok':'err')};
+  const clean=id=>(document.getElementById(id).value||'').trim();
+  try{
+    const session=await window.DW_DATA.getSession();
+    if(cfg.requireFieldLogin && !session){ location.replace((cfg.loginUrl||'field-login.html')+'?login=required&next=quick-lead.html'); return; }
+  }catch(e){ show('Logincontrole mislukt: '+(e.message||e),false); }
+
+  form.addEventListener('submit',async e=>{
+    e.preventDefault(); msg.className='msg';
+    const email=clean('email');
+    if(email && !document.getElementById('email').checkValidity()){ document.getElementById('email').reportValidity(); return; }
+    if(!document.getElementById('consent').checked){ show('Leg eerst toestemming voor contact vast.',false); return; }
+    btn.disabled=true; btn.textContent='Opslaan…';
+    const externalId=(crypto.randomUUID?crypto.randomUUID():'dw-'+Date.now());
+    const address=[clean('street'),clean('house'),clean('postcode').toUpperCase(),clean('city')].filter(Boolean).join(' ');
+    try{
+      const lead=await window.DW_DATA.createLead({
+        company:'Particulier',
+        contact_name:clean('name'),
+        email,
+        phone:clean('phone'),
+        scan_type:'Verduurzaming interesselead',
+        status:'Nieuwe lead',
+        revenue:0,
+        source:'Buitendienst'
+      });
+      await window.DW_DATA.upsertLeadMeta(lead.id,{
+        externalId,
+        formId:'dw-quick-lead-v1',
+        partner:null,
+        appointmentStatus:'Geen afspraak',
+        appointmentDate:null,
+        expectedCommission:60,
+        campaign:clean('campaign')||'VERDUURZAMING-OPDRACHTGEVER-60',
+        interests:'Interesse verduurzaming / terugbelinformatie',
+        platform:'DW APP',
+        qualification:'Interesselead',
+        utmSource:'buitendienst',
+        utmMedium:'field-app',
+        utmCampaign:clean('campaign')||'VERDUURZAMING-OPDRACHTGEVER-60',
+        utmContent:'quick-lead',
+        automationSource:'dw-quick-lead-v1',
+        automationStatus:'Ontvangen',
+        capturedAt:new Date().toISOString(),
+        address
+      });
+      const salesdockText=['Naam: '+clean('name'),'Telefoon: '+clean('phone'),'E-mail: '+email,'Adres: '+address,'Campagne: '+clean('campaign')].join('\n');
+      try{localStorage.setItem('dw-last-salesdock-lead',salesdockText)}catch{}
+      show('Lead opgeslagen in DW. Salesdock-koppeling voegen we toe zodra je toegang hebt.',true);
+      form.reset();
+      document.getElementById('campaign').value='VERDUURZAMING-OPDRACHTGEVER-60';
+    }catch(err){show('Opslaan mislukt: '+(err.message||err),false)}
+    btn.disabled=false; btn.textContent='Lead opslaan';
+  });
+})();
+</script>
+</body>
+</html>
