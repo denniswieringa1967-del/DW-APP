@@ -666,3 +666,88 @@ body{
   .ops-row-actions{display:grid;grid-template-columns:1fr;width:100%}
   .ops-row-actions .primary,.ops-row-actions .secondary,.ops-link-button,.ops-status{width:100%;min-width:0}
 }
+
+
+/* ======================================================================
+   DW APP v5.13.5 — herstel header / logo / snelle lead layout
+   Herstelt alleen weergave; bestaande data- en scanlogica blijft intact.
+   ====================================================================== */
+.sr-only{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+.topbar{
+  min-height:78px;
+  height:auto;
+  overflow:hidden;
+}
+.dw-master-brand{
+  flex:0 1 auto;
+  min-width:0;
+  max-width:min(520px,62vw);
+  overflow:hidden;
+}
+.dw-master-header-logo{
+  display:block;
+  width:min(380px,48vw)!important;
+  max-width:100%!important;
+  height:54px!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+  border-radius:0!important;
+}
+.topbar-actions{
+  flex:0 0 auto;
+  min-width:0;
+}
+.flow-shell:has(.screen-number){
+  min-width:0;
+}
+.flow-shell .flow-main,
+.flow-shell .screen-card,
+.flow-shell .screen-body{
+  min-width:0;
+}
+.flow-actions{
+  width:100%;
+  max-width:100%;
+}
+body{
+  overflow-x:hidden;
+}
+@media(max-width:880px){
+  .flow-side{display:none}
+  .flow-shell{grid-template-columns:1fr}
+  .flow-main{padding-bottom:108px}
+}
+@media(max-width:620px){
+  .topbar{
+    min-height:66px;
+    padding:8px 10px;
+  }
+  .dw-master-brand{
+    max-width:60vw;
+  }
+  .dw-master-header-logo{
+    width:58vw!important;
+    height:46px!important;
+  }
+  .topbar-actions{
+    gap:4px;
+  }
+  .mode-chip{
+    max-width:42px;
+    overflow:hidden;
+  }
+  .flow-actions{
+    position:sticky;
+    bottom:max(8px,env(safe-area-inset-bottom));
+  }
+}
