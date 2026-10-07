@@ -16,6 +16,12 @@ label{display:block;font-size:13px;font-weight:700;color:#536582}input{width:100
 .note{font-size:13px;color:var(--muted);line-height:1.5}.consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:12px;background:#f9fbfe}.consent input{width:auto;margin-top:3px}
 button{width:100%;margin-top:16px;padding:14px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:800;font-size:16px;cursor:pointer}.msg{margin-top:12px;padding:12px;border-radius:10px;display:none}.msg.ok{display:block;background:#edf8f5;color:#075f59}.msg.err{display:block;background:#fff0f2;color:#a62032}
 .back{display:inline-block;margin:0 0 14px;color:#245eea;font-weight:700;text-decoration:none}@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.wrap{padding:12px}}
+@media (orientation:landscape) and (max-height:600px) and (max-width:1400px){
+html,body{width:100%;min-height:100%;background:var(--bg)}
+.wrap{width:100%;max-width:none;padding:12px max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left));box-sizing:border-box}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid>*{min-width:0}.grid .full{grid-column:1/-1}
+.head{padding:16px 22px}.head h1{font-size:24px}input,button{max-width:100%;box-sizing:border-box}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
