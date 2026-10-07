@@ -809,3 +809,27 @@ input,select,textarea,button{
     overflow:hidden;
   }
 }
+
+/* DW APP: uitsluitend telefoon/tablet-landscape; portrait blijft ongewijzigd. */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 1400px) {
+  html, body { min-height:100%; background:#f4f7fc!important; }
+  .app-shell { width:100%!important; max-width:none!important; min-height:100dvh; }
+  .main { width:calc(100% - 24px)!important; max-width:none!important; margin:0 auto!important; padding:14px max(0px,env(safe-area-inset-right)) 90px max(0px,env(safe-area-inset-left)); }
+  .topbar { position:relative; height:auto; min-height:62px; flex-wrap:wrap; gap:8px; padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left)); }
+  .dw-master-brand { max-width:55%; min-width:0; }
+  .dw-master-header-logo { width:min(38vw,280px)!important; height:46px!important; }
+  .topbar-actions { flex-wrap:wrap; gap:6px; }
+  .flow-shell { width:100%; grid-template-columns:minmax(0,1fr); }
+  .flow-side { display:none; }
+  .flow-main { padding-bottom:12px; }
+  .hero { padding:20px 24px; }
+  .hero h1 { font-size:30px; }
+  .route-grid, .form-grid, .product-grid, .choice-grid, .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .field.full { grid-column:1/-1; }
+  .screen-head, .screen-body { padding:18px 22px; }
+  .question-wrap { max-width:none; }
+  .flow-actions { position:static; flex-wrap:wrap; width:100%; }
+  .flow-actions .spacer { display:none; }
+  .bottom-nav { width:calc(100% - 24px); max-width:none; height:62px; bottom:max(6px,env(safe-area-inset-bottom)); }
+  .card, .choice, .field, .summary-grid > *, .topbar > * { min-width:0; overflow-wrap:anywhere; }
+}
