@@ -90,6 +90,7 @@
     focusMain();
   }
 
+  const quickInterestOptions=["Thuisbatterij", "Dakisolatie", "Spouwmuurisolatie", "Vloerisolatie", "Isolatie algemeen", "Kunststof kozijnen", "Warmtepomp", "Airco", "Laadpaal", "Vloerverwarming", "Elektra", "Meerdere maatregelen", "Weet ik nog niet / algemeen verduurzamen"];
   function renderIntegratedQuickLead(){
     visit.product="quicklead";
     visit.visit_status="Interesse";
@@ -100,6 +101,7 @@
         <div class="field full"><label>Naam bewoner *</label><input id="quickName" value="${esc(c.name)}" autocomplete="name"></div>
         <div class="field"><label>Mobiel nummer *</label><input id="quickPhone" type="tel" value="${esc(c.phone)}" autocomplete="tel"></div>
         <div class="field"><label>E-mail <span class="field-hint">optioneel</span></label><input id="quickEmail" type="email" value="${esc(c.email)}" autocomplete="email"></div>
+        <div class="field full"><label for="quickInterest">Geïnteresseerd in *</label><select id="quickInterest" required><option value="">Kies één onderwerp</option>${quickInterestOptions.map(option=>`<option value="${esc(option)}" ${visit.quick_interest===option?'selected':''}>${esc(option)}</option>`).join("")}</select></div>
         <div class="field"><label>Straat *</label><input id="quickStreet" value="${esc(c.street)}" autocomplete="street-address"></div>
         <div class="field"><label>Huisnummer *</label><input id="quickHouse" value="${esc(c.house_number)}"></div>
         <div class="field"><label>Postcode *</label><input id="quickPostcode" value="${esc(c.postcode)}" autocomplete="postal-code"></div>
@@ -129,6 +131,7 @@
     visit.consent.privacy=visit.consent.contact;
     visit.consent.privacy_version=LEGAL_VERSION;
     visit.consent.captured_at=visit.consent.contact?new Date().toISOString():"";
+    visit.quick_interest=val("quickInterest");
     visit.notes="Interesselead verduurzaming · geen afspraak gemaakt · terugbelinformatie gevraagd.";
   }
 
@@ -141,6 +144,7 @@
     if(!visit.contact.house_number)errs.push("huisnummer");
     if(!visit.contact.postcode)errs.push("postcode");
     if(visit.contact.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(visit.contact.email))errs.push("geldig e-mailadres");
+    if(!quickInterestOptions.includes(visit.quick_interest))errs.push("Geïnteresseerd in");
     if(!visit.consent.contact)errs.push("toestemming voor contact");
     if(errs.length)return showValidation(`Controleer: ${errs.join(", ")}.`);
 
@@ -169,7 +173,7 @@
         appointmentDate:null,
         expectedCommission:60,
         campaign:visit.campaign,
-        interests:"Interesse verduurzaming / terugbelinformatie",
+        interests:visit.quick_interest,
         platform:cfg.platformLabel||"DW APP",
         video:null,
         qualification:"Interesselead",
@@ -194,6 +198,7 @@
           `Telefoon: ${visit.contact.phone}`,
           `E-mail: ${visit.contact.email||""}`,
           `Adres: ${address}`,
+          `Geïnteresseerd in: ${visit.quick_interest}`,
           `Campagne: ${visit.campaign}`,
           "Geen afspraak gemaakt",
           "Contacttoestemming: Ja",
