@@ -59,6 +59,27 @@
       .page{padding:0;background:#071d2e}.phone{width:100%;min-height:100dvh;border-radius:0;border:0;box-shadow:none}.content{padding:28px 24px 24px}.logo{width:58px;height:58px;border-radius:16px;background:#071d2e;display:grid;place-items:center;box-shadow:0 12px 30px rgba(0,0,0,.18);overflow:hidden;border:1px solid rgba(255,255,255,.16)}.logo img{width:100%;height:100%;object-fit:cover;display:block}.secure{font-size:10px;padding:7px 9px}.hero{padding:48px 0 44px}h1{font-size:43px}.lead{font-size:15px}.feature-row{margin-top:20px}}
     @media(max-width:360px){.content{padding-left:19px;padding-right:19px}.secure{display:none}h1{font-size:39px}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+    /* Alleen lage landscape-viewports: startscherm vult de telefoonbreedte. */
+    @media (orientation:landscape) and (max-height:600px) {
+      html,body{width:100%;max-width:none;background:var(--navy)}
+      .page{width:100%;max-width:none;padding:0;display:block;background:var(--navy)}
+      .phone{width:100%;max-width:none;min-height:100dvh;margin:0;border:0;border-radius:0;box-shadow:none}
+      .content{min-height:100dvh;padding:10px max(8px,env(safe-area-inset-right)) 10px max(8px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto 1fr;gap:12px 20px;align-items:center}
+      .brand{grid-column:1/-1;min-width:0}
+      .logo{width:42px;height:42px;flex-shrink:0;background:var(--navy)}
+      .logo img{width:100%;height:100%;object-fit:contain}
+      .hero{min-width:0;max-width:none;margin:0;padding:8px 0}
+      h1{max-width:none;margin:8px 0 10px;font-size:clamp(28px,4.5vw,40px)}
+      .lead{max-width:none;font-size:14px;line-height:1.5}
+      .feature-row{margin-top:12px;gap:6px}
+      .feature-row span{padding:6px 8px}
+      .actions{min-width:0;width:100%;margin:0}
+      .signin{min-height:48px}
+      .admin{margin-top:10px}
+      .legal{margin-top:12px;padding-top:10px}
+      .dw-legal-links{color:#afc0d5!important}
+    }
   </style>
 </head>
 <body>
