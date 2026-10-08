@@ -140,7 +140,7 @@
     if(!visit.contact.street)errs.push("straat");
     if(!visit.contact.house_number)errs.push("huisnummer");
     if(!visit.contact.postcode)errs.push("postcode");
-    if(visit.contact.email&&!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(visit.contact.email))errs.push("geldig e-mailadres");
+    if(visit.contact.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(visit.contact.email))errs.push("geldig e-mailadres");
     if(!visit.consent.contact)errs.push("toestemming voor contact");
     if(errs.length)return showValidation(`Controleer: ${errs.join(", ")}.`);
 
