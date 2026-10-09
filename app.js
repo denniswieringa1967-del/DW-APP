@@ -155,6 +155,7 @@
     persist();
 
     try{
+      const address=[visit.contact.street,visit.contact.house_number,visit.contact.postcode,visit.contact.city].filter(Boolean).join(" ");
       const lead=await window.DW_DATA.createLead({
         company:"Particulier",
         contact_name:visit.contact.name,
@@ -163,7 +164,20 @@
         scan_type:"Verduurzaming interesselead",
         status:"Nieuwe lead",
         revenue:0,
-        source:"Buitendienst"
+        source:"Buitendienst",
+        notes:[
+          "[QUICK_LEAD_START]",
+          "Type: Verduurzaming interesselead",
+          `Naam: ${visit.contact.name}`,
+          `Telefoon: ${visit.contact.phone}`,
+          `E-mail: ${visit.contact.email||""}`,
+          `Adres: ${address}`,
+          `Geïnteresseerd in: ${visit.quick_interest}`,
+          `Campagne: ${visit.campaign}`,
+          "Geen afspraak gemaakt",
+          "Contacttoestemming: Ja",
+          "[QUICK_LEAD_EINDE]"
+        ].join("\\n")
       });
       await window.DW_DATA.upsertLeadMeta(lead.id,{
         externalId:visit.id,
@@ -185,25 +199,12 @@
         automationStatus:"Ontvangen",
         capturedAt:visit.created_at
       });
-      const address=[visit.contact.street,visit.contact.house_number,visit.contact.postcode,visit.contact.city].filter(Boolean).join(" ");
       try{
         const db=window.DW_DATA?.client;
         if(db){
           await db.from("lead_meta").update({address,updated_at:new Date().toISOString()}).eq("lead_id",lead.id);
         }
-        await window.DW_DATA.updateLead(lead.id,{notes:[
-          "[QUICK_LEAD_START]",
-          "Type: Verduurzaming interesselead",
-          `Naam: ${visit.contact.name}`,
-          `Telefoon: ${visit.contact.phone}`,
-          `E-mail: ${visit.contact.email||""}`,
-          `Adres: ${address}`,
-          `Geïnteresseerd in: ${visit.quick_interest}`,
-          `Campagne: ${visit.campaign}`,
-          "Geen afspraak gemaakt",
-          "Contacttoestemming: Ja",
-          "[QUICK_LEAD_EINDE]"
-        ].join("\\n")});
+
       }catch(metaErr){console.warn("Aanvullende quick-lead metadata kon niet volledig worden bijgewerkt.",metaErr)}
       visit.production_lead_id=lead.id;
       visit.sync_status="synced";
@@ -508,6 +509,10 @@
   function metaFor(leadId){ return metaByLead.get(String(leadId)) || {}; }
 
   function isOwnLead(lead){
+    // Korte interesseleads: exacte bestaande auth-ID, nooit naam/substring als eigenaar.
+    if (lower(lead.scan_type) === "verduurzaming interesselead") {
+      return isAdmin() || Boolean(session?.user?.id && lead.created_by === session.user.id);
+    }
     const meta = metaFor(lead.id);
     const worker = lower(meta.field_worker || meta.fieldWorker || "");
     const workerMatch = worker && normalizedIdentities().some((id) => worker === id || worker.includes(id) || id.includes(worker));
@@ -588,7 +593,7 @@
       ${safeNotice()}
       <div class="ops-dashboard-grid">
         <button class="ops-tile" data-ops-view="addresses"><span class="ops-icon">⌖</span><strong>Adressen & route</strong><small>Toegewezen adressen, status en navigatie.</small></button>
-        <button class="ops-tile" data-ops-view="acquisition"><span class="ops-icon">↗</span><strong>Eigen acquisitie</strong><small>Bekijk uw buitendienstleads en opvolging.</small></button>
+        <button class="ops-tile" data-ops-view="acquisition"><span class="ops-icon">↗</span><strong>Mijn resultaten</strong><small>Eigen leads, verwachte waarde en opvolging.</small></button>
         <button class="ops-tile" data-ops-view="registrations"><span class="ops-icon">✓</span><strong>Inschrijvingen</strong><small>Controleer en corrigeer klantgegevens.</small></button>
         ${isAdmin()?`<button class="ops-tile" data-ops-view="reports"><span class="ops-icon">▤</span><strong>Rapporten</strong><small>Status bekijken en beschikbare rapportverwerking starten.</small></button>`:''}
         ${isAdmin()?`<button class="ops-tile" data-ops-view="installers"><span class="ops-icon">⌂</span><strong>Installateurdossiers</strong><small>Alleen dossiers met aparte deeltoestemming voorbereiden.</small></button>`:''}
@@ -747,19 +752,36 @@
     window.open(`https://www.google.com/maps/dir/?${params.toString()}`, "_blank");
   }
 
-  function leadStatus(lead){ return clean(metaFor(lead.id).sales_status || lead.status || "Nieuwe lead"); }
+  function leadStatus(lead){
+    const meta=metaFor(lead.id);
+    if(lower(lead.scan_type)==="verduurzaming interesselead" && String(meta.automation_status||"").startsWith("Doorgestuurd naar opdrachtgever")) return "Doorgestuurd naar opdrachtgever";
+    return clean(meta.sales_status || lead.status || "Nieuwe lead");
+  }
   function leadDate(lead){
     const meta=metaFor(lead.id); const raw=meta.captured_at || lead.created_at;
     try { return new Intl.DateTimeFormat("nl-NL",{dateStyle:"medium"}).format(new Date(raw)); } catch { return clean(raw); }
   }
   function leadWho(lead){ return clean(lead.company && lead.company !== "Particulier" ? lead.company : lead.contact_name) || "Onbekende klant"; }
 
+  function interestResultsSummary(){
+    const rows=leads.filter(lead=>lower(lead.scan_type)==="verduurzaming interesselead");
+    const key=(value)=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Amsterdam",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(value));
+    const today=key(new Date()),d=new Date(today+"T12:00:00Z"),weekday=(d.getUTCDay()+6)%7;
+    d.setUTCDate(d.getUTCDate()-weekday);const monday=d.toISOString().slice(0,10);
+    const dated=rows.map(lead=>{let day="";try{day=key(lead.created_at)}catch(_){}return {lead,day};});
+    const week=dated.filter(row=>row.day>=monday&&row.day<=today);
+    const value=week.reduce((sum,row)=>sum+(Number(metaFor(row.lead.id).expected_commission)||0),0);
+    const euro=new Intl.NumberFormat("nl-NL",{style:"currency",currency:"EUR"}).format(value);
+    return `<div class="stats"><div class="stat-card"><small>Interesseleads vandaag</small><strong>${dated.filter(row=>row.day===today).length}</strong></div><div class="stat-card"><small>Deze week</small><strong>${week.length}</strong></div><div class="stat-card"><small>Verwachte leadwaarde deze week</small><strong>${esc(euro)}</strong></div></div><p class="ops-footnote">${isAdmin()?"Totaal van alle zichtbare medewerkers en flyerleads.":"Alleen uw eigen interesseleads."} Verwachte opdrachtwaarde, geen vastgestelde medewerkersuitbetaling.</p>`;
+  }
+
   function renderAcquisition(){
     setOpsNavActive();
     const appointment = leads.filter((lead)=>/afspraak/i.test(leadStatus(lead))).length;
     const sold = leads.filter((lead)=>/verkocht|klant/i.test(leadStatus(lead))).length;
     main.innerHTML = `<section class="ops-page">
-      ${opsHeader("Eigen acquisitie", "Uw Field App-leads en actuele opvolgstatus.")}
+      ${opsHeader("Mijn resultaten", "Uw leads, interessekeuzes en actuele opvolgstatus.")}
+      ${interestResultsSummary()}
       ${safeNotice()}
       <div class="ops-toolbar"><button class="secondary" data-ops-view="dashboard">← Overzicht</button><button class="primary" id="opsAcqNew">Nieuwe acquisitie</button></div>
       <div class="ops-metrics"><div><span>Leads zichtbaar</span><strong>${leads.length}</strong></div><div><span>Afspraken</span><strong>${appointment}</strong></div><div><span>Klant / verkocht</span><strong>${sold}</strong></div></div>
@@ -777,7 +799,7 @@
     const host=$("#opsLeadList"); if(!host)return;
     const q=lower($("#opsLeadSearch")?.value);
     const rows=leads.filter((lead)=>!q || [leadWho(lead),lead.email,lead.phone,lead.scan_type,leadStatus(lead),metaFor(lead.id).campaign].map(lower).join(" ").includes(q));
-    host.innerHTML=rows.length?rows.map((lead)=>`<article class="ops-row"><div class="ops-row-main"><strong>${esc(leadWho(lead))}</strong><span>${esc(lead.scan_type || "Lead")}</span><small>${esc(leadDate(lead))} · ${esc(metaFor(lead.id).campaign || lead.source || "Buitendienst")}</small></div><div class="ops-status-pill">${esc(leadStatus(lead))}</div></article>`).join(""):`<div class="empty">Geen leads gevonden.</div>`;
+    host.innerHTML=rows.length?rows.map((lead)=>`<article class="ops-row"><div class="ops-row-main"><strong>${esc(leadWho(lead))}</strong><span>${esc(lead.scan_type || "Lead")}${metaFor(lead.id).interests?` · ${esc(metaFor(lead.id).interests)}`:""}</span><small>${esc(leadDate(lead))} · ${esc(metaFor(lead.id).campaign || lead.source || "Buitendienst")}</small></div><div class="ops-status-pill">${esc(leadStatus(lead))}</div></article>`).join(""):`<div class="empty">Geen leads gevonden.</div>`;
   }
 
   function registrationAddress(lead){
@@ -799,11 +821,24 @@
     focusTop();
   }
 
+  // Pas activeren na goedgekeurde databasebeveiliging en twee-accounttest.
+  const DW60_CORRECTIONS_READY=true;
+  const dw60Choices=["Thuisbatterij","Dakisolatie","Spouwmuurisolatie","Vloerisolatie","Isolatie algemeen","Kunststof kozijnen","Warmtepomp","Airco","Laadpaal","Vloerverwarming","Elektra","Meerdere maatregelen","Weet ik nog niet / algemeen verduurzamen"];
+  const is60=(lead)=>lower(lead.scan_type)==="verduurzaming interesselead";
+  function canCorrect60(lead){
+    if(!DW60_CORRECTIONS_READY||!canWrite())return false;
+    if(isAdmin())return true;
+    const age=Date.now()-new Date(lead.created_at).getTime();
+    return lead.created_by===session?.user?.id && Number.isFinite(age) && age>=0 && age<=7*86400000 && !String(metaFor(lead.id).automation_status||"").startsWith("Doorgestuurd naar opdrachtgever");
+  }
+  function public60Note(lead){return String(lead.notes||"").match(/\[DW60_KLANTNOTITIE\]([\s\S]*?)\[\/DW60_KLANTNOTITIE\]/)?.[1]||"";}
+  function correction60Fields(lead){if(!is60(lead))return "";const meta=metaFor(lead.id);return `<label class="field"><span>Geïnteresseerd in</span><select name="interest60">${dw60Choices.map(v=>`<option ${v===meta.interests?'selected':''}>${esc(v)}</option>`).join("")}</select></label><label class="field full"><span>Korte klantnotitie</span><textarea name="note60" maxlength="500">${esc(public60Note(lead))}</textarea></label>`;}
+
   function drawRegistrations(){
     const host=$("#opsRegistrationList"); if(!host)return;
     host.innerHTML=leads.length?leads.map((lead)=>{
       const id=String(lead.id), address=registrationAddress(lead);
-      return `<article class="ops-registration" data-reg-id="${esc(id)}"><div class="ops-registration-head"><div><strong>${esc(leadWho(lead))}</strong><small>${esc(lead.scan_type || "Inschrijving")} · ${esc(leadDate(lead))}</small></div><button class="secondary ops-edit-reg">Bewerken</button></div><form class="ops-reg-form hidden"><div class="form-grid"><label class="field"><span>Naam</span><input name="contact_name" value="${esc(lead.contact_name || "")}" required></label><label class="field"><span>Telefoon</span><input name="phone" value="${esc(lead.phone || "")}"></label><label class="field"><span>E-mail</span><input name="email" type="email" value="${esc(lead.email || "")}"></label><label class="field"><span>Adres</span><input name="address" value="${esc(address)}"></label></div><div class="ops-form-actions"><button type="button" class="ghost ops-cancel-reg">Annuleren</button><button type="submit" class="primary" ${canWrite()?"":"disabled"}>Wijzigingen opslaan</button></div></form></article>`;
+      return `<article class="ops-registration ${is60(lead)?'screen-card':''}" style="${is60(lead)?'padding:18px;margin-bottom:14px':''}" data-reg-id="${esc(id)}"><div class="ops-registration-head" style="${is60(lead)?'display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:16px':''}"><div><strong>${esc(leadWho(lead))}</strong><small style="display:block">${esc(lead.scan_type || "Inschrijving")} · ${esc(leadDate(lead))}</small></div><button class="secondary ops-edit-reg" ${is60(lead)&&!canCorrect60(lead)?"disabled":""}>${is60(lead)?"Lead corrigeren":"Bewerken"}</button></div><form class="ops-reg-form hidden"><div class="form-grid"><label class="field"><span>Naam</span><input name="contact_name" value="${esc(lead.contact_name || "")}" required></label><label class="field"><span>Telefoon</span><input name="phone" value="${esc(lead.phone || "")}"></label><label class="field"><span>E-mail</span><input name="email" type="email" value="${esc(lead.email || "")}"></label><label class="field"><span>Adres</span><input name="address" value="${esc(address)}"></label>${correction60Fields(lead)}</div><div class="ops-form-actions"><button type="button" class="ghost ops-cancel-reg">Annuleren</button><button type="submit" class="primary" ${canWrite()?"":"disabled"}>Wijzigingen opslaan</button></div></form></article>`;
     }).join(""):`<div class="empty">Nog geen inschrijvingen gevonden.</div>`;
 
     $$(".ops-edit-reg",host).forEach((button)=>button.addEventListener("click",()=>{
@@ -819,20 +854,43 @@
     const form=event.currentTarget, card=form.closest("[data-reg-id]"), id=card?.dataset.regId;
     const submit=form.querySelector('button[type="submit"]');
     if(!id||!submit)return;
+    const currentLead=leads.find(row=>String(row.id)===String(id));
+    if(!currentLead)return toast("Lead niet gevonden.","error");
+    if(is60(currentLead)&&!canCorrect60(currentLead))return toast("Correcties nog niet vrijgegeven, termijn verstreken of lead doorgestuurd. Vraag beheerder.","error");
     const contact_name=clean(form.elements.contact_name.value), phone=clean(form.elements.phone.value), email=clean(form.elements.email.value), address=clean(form.elements.address.value);
     if(!contact_name)return toast("Vul eerst de naam in.","error");
     if(email&&!form.elements.email.checkValidity()){form.elements.email.reportValidity();return;}
     submit.disabled=true;submit.textContent="Opslaan…";
     try{
-      await window.DW_DATA.updateLead(id,{contact_name,phone,email});
+      let changes={contact_name,phone,email};
+      const quick=is60(currentLead),interest=quick?clean(form.elements.interest60.value):"";
+      if(quick){
+        if(!dw60Choices.includes(interest)||!phone||!/^[+\d\s().-]+$/.test(phone))throw new Error("Controleer telefoon en interesse.");
+        const note=clean(form.elements.note60.value);
+        if(note.length>500||note.includes("[DW60_KLANTNOTITIE]")||note.includes("[/DW60_KLANTNOTITIE]"))throw new Error("Ongeldige klantnotitie.");
+        const base=String(currentLead.notes||"").replace(/\n?\[DW60_KLANTNOTITIE\][\s\S]*?\[\/DW60_KLANTNOTITIE\]/g,"");
+        changes.notes=base+(note?"\n[DW60_KLANTNOTITIE]"+note+"[/DW60_KLANTNOTITIE]":"");
+      }
       const c=client();
-      if(c){
-        const {error}=await c.from("lead_meta").update({address:address||null,updated_at:new Date().toISOString()}).eq("lead_id",id);
+      if(quick){
+        if(!c)throw new Error("Geen verbinding met de centrale leadflow.");
+        const {data,error}=await c.rpc("dw60_correct_own_lead",{
+          p_lead_id:id,p_name:contact_name,p_phone:phone,p_email:email,
+          p_address:address,p_interest:interest,p_note:clean(form.elements.note60.value)
+        });
         if(error)throw error;
+        if(!data||String(data.lead_id)!==String(id))throw new Error("Correctie niet bevestigd. Vernieuw de lijst.");
+        changes={contact_name:data.contact_name,phone:data.phone,email:data.email,notes:data.notes};
+      }else{
+        await window.DW_DATA.updateLead(id,changes);
+        if(c){
+          const {error}=await c.from("lead_meta").update({address:address||null,updated_at:new Date().toISOString()}).eq("lead_id",id);
+          if(error)throw error;
+        }
       }
       const lead=leads.find((row)=>String(row.id)===String(id));
-      if(lead)Object.assign(lead,{contact_name,phone,email});
-      const meta=metaFor(id);meta.address=address;metaByLead.set(String(id),meta);
+      if(lead)Object.assign(lead,changes);
+      const meta=metaFor(id);meta.address=address;if(quick)meta.interests=interest;metaByLead.set(String(id),meta);
       toast("Klantgegevens bijgewerkt.","success");
       drawRegistrations();
     }catch(error){
