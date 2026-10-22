@@ -833,3 +833,6 @@ input,select,textarea,button{
   .bottom-nav { width:calc(100% - 24px); max-width:none; height:62px; bottom:max(6px,env(safe-area-inset-bottom)); }
   .card, .choice, .field, .summary-grid > *, .topbar > * { min-width:0; overflow-wrap:anywhere; }
 }
+
+/* DW APP 2026-10-22: contrast van het ongewijzigde originele headerlogo. */
+.topbar .dw-master-brand{background:#071d2e;border-radius:6px;}
