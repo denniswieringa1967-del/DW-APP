@@ -17,12 +17,19 @@ def backend(op,access_token,**payload):
   raise ValueError('Documentontvangst niet bevestigd.')
 
 def application(env,start_response):
- status='400 Bad Request';out={'error':'Ongeldige documentaanlevering.'}
+ status='400 Bad Request';out={'error':'Ongeldige documentaanlevering.'};cors=[]
  try:
-  if env.get('REQUEST_METHOD')!='POST':raise ValueError('POST vereist.')
   if env.get('wsgi.url_scheme')!='https':raise PermissionError('HTTPS vereist.')
   origin=env.get('HTTP_ORIGIN','');host=env.get('HTTP_HOST','')
-  if origin!='https://'+host:raise PermissionError('Aanlevering alleen vanaf deze host.')
+  allowed=os.environ.get('DW_APP_ORIGIN','')
+  if origin!='https://'+host and (not allowed or origin!=allowed):raise PermissionError('Aanlevering alleen vanaf de geconfigureerde DW APP.')
+  cors=[('Access-Control-Allow-Origin',origin),('Vary','Origin')]
+  if env.get('REQUEST_METHOD')=='OPTIONS':
+   if env.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')!='POST':raise PermissionError('Alleen POST toegestaan.')
+   requested={x.strip().lower() for x in env.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS','').split(',') if x.strip()}
+   if not requested.issubset({'authorization','content-type'}):raise PermissionError('Onbekende requestheaders.')
+   start_response('204 No Content',cors+[('Access-Control-Allow-Methods','POST'),('Access-Control-Allow-Headers','authorization,content-type'),('Cache-Control','no-store')]);return [b'']
+  if env.get('REQUEST_METHOD')!='POST':raise ValueError('POST vereist.')
   auth=env.get('HTTP_AUTHORIZATION','')
   if not auth.startswith('Bearer ') or len(auth)>10000:raise PermissionError('Log eerst in.')
   token=auth[7:];backend('ping',token) # Server verifies the real owner JWT before parsing documents.
@@ -49,4 +56,4 @@ def application(env,start_response):
  except PermissionError as e:status='403 Forbidden';out={'error':str(e)}
  except (ValueError,KeyError,subprocess.SubprocessError):pass
  except Exception:status='503 Service Unavailable';out={'error':'Documentverwerker tijdelijk niet beschikbaar.'}
- body=json.dumps(out).encode();start_response(status,[('Content-Type','application/json'),('Cache-Control','no-store'),('X-Content-Type-Options','nosniff'),('Content-Length',str(len(body)))]);return [body]
+ body=json.dumps(out).encode();start_response(status,[('Content-Type','application/json'),('Cache-Control','no-store'),('X-Content-Type-Options','nosniff'),('Content-Length',str(len(body)))]+cors);return [body]

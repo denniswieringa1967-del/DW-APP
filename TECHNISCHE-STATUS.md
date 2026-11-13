@@ -21,3 +21,7 @@ Geen betaalde dienst, advertentie, main-merge of openbare livegang geactiveerd.
 
 DW APP BUITENDIENST GEREED VOOR DAGELIJKS GEBRUIK: NEE
 CALLER-ID GEREED VOOR DAGELIJKS GEBRUIK: NEE
+
+## GitHub Pages hosting follow-up
+
+The confirmed live app is on GitHub Pages, not inside Plesk httpdocs. The pending adapter now permits the owned DW backend's HTTPS document gateway, with exact configured-Origin CORS and no cookies. A deployment-time runtime-config generator rejects server secrets. The offline worker excludes private/API/config responses. These changes were tested locally only; no new hosted production-account test or live publication is claimed. Pages publishing configuration, the backend Python runtime and protected hosted preview are still unverified.
