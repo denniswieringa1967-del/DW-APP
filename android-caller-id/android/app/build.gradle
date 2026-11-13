@@ -1,0 +1,14 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'nl.dwmarketing.callerid'
+ compileSdk 35
+ defaultConfig {
+  applicationId 'nl.dwmarketing.callerid'; minSdk 29; targetSdk 35; versionCode 1; versionName '0.1-preparation'
+  // Public project values and the verified production dossier-bridge URL must be supplied at build time.
+  buildConfigField 'String', 'BACKEND', '"' + (project.findProperty('dwBackend') ?: '') + '"'
+  buildConfigField 'String', 'PUBLIC_KEY', '"' + (project.findProperty('dwPublicKey') ?: '') + '"'
+  buildConfigField 'String', 'DOSSIER_URL', '"' + (project.findProperty('dwDossierUrl') ?: '') + '"'
+ }
+ buildFeatures { buildConfig true }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

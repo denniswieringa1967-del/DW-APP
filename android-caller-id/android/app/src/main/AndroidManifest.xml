@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ <uses-permission android:name="android.permission.INTERNET"/>
+ <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+ <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+ <!-- Optional: Android otherwise omits numbers already saved in phone contacts. No contacts are read or uploaded by our code. -->
+ <uses-permission android:name="android.permission.READ_CONTACTS"/>
+ <application android:label="DW Nummerherkenning" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false" android:fullBackupContent="false">
+  <activity android:name=".SetupActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
+  <activity android:name=".CallerActivity" android:exported="false" android:excludeFromRecents="true"/>
+  <service android:name=".DwScreeningService" android:exported="true" android:permission="android.permission.BIND_SCREENING_SERVICE"><intent-filter><action android:name="android.telecom.CallScreeningService"/></intent-filter></service>
+  <service android:name=".SyncJob" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE"/>
+ </application>
+</manifest>

@@ -1,0 +1,2 @@
+// Optional app-entry bridge, loaded after existing data-service. Contains only a lead ID, never authentication tokens.
+(async()=>{try{const id=sessionStorage.getItem('dw_caller_pending_lead');if(!id||!/^[a-f0-9-]{36}$/i.test(id))return;const session=await window.DW_DATA?.getSession();if(session?.user?.id){const target=new URL('caller-dossier.html',location.href);target.searchParams.set('lead',id);location.replace(target.href);}}catch{}})();

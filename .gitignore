@@ -1,0 +1,13 @@
+runtime-config.js
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.apk
+*.aab
+.local/
+.private-signing/
+**/build/
+**/build-test/
+**/local.properties

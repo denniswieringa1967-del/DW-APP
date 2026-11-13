@@ -836,3 +836,10 @@ input,select,textarea,button{
 
 /* DW APP 2026-10-22: contrast van het ongewijzigde originele headerlogo. */
 .topbar .dw-master-brand{background:#071d2e;border-radius:6px;}
+
+
+/* Shared visit context, scoped to field visit screens. */
+.visit-context{display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:#eef5fb;border:1px solid #ccddec;border-radius:16px;padding:16px;margin:0 0 16px;overflow-wrap:anywhere}
+.visit-context>div{flex:1 1 200px;min-width:0}.visit-context strong,.visit-context span{display:block}.visit-context small{display:block;color:#52677c}.visit-context button{min-height:44px}
+.visit-result{display:block;text-align:left;width:100%;margin:8px 0;min-height:52px;white-space:normal;overflow-wrap:anywhere}.visit-result span{display:block;font-weight:400}
+@media(max-width:600px){.visit-context button{flex:1 1 120px}.business-scan-grid{grid-template-columns:minmax(0,1fr)}.screen-body .form-grid>*{min-width:0}.screen-body input,.screen-body select{max-width:100%;box-sizing:border-box}}

@@ -548,6 +548,7 @@
   }
 
   async function saveCampaignVisit(visit) {
+    if(visit.existing_lead_candidate&&!visit.production_lead_id)throw Error('Bestaand dossier geselecteerd. Beveiligde serverkoppeling aan dit bezoek moet nog worden aangesloten; geen nieuwe lead gemaakt.');
     const normalized=window.DW_CAMPAIGN_ROUTING.normalize(visit);
     if(visit.production_lead_id&&!visit.energy_campaign_saved)throw Error('Dit bezoek heeft al een ander centraal dossier. De beveiligde uitbreiding van dit dossier moet eerst worden aangesloten; er wordt geen tweede lead gemaakt.');
     if(visit.campaign_key!=='business_energy'){
