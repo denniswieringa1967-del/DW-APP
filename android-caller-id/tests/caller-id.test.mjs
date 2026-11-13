@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {normalizeNlPhone,buildSnapshot,matchCaller,primaryCategory} from '../shared/caller-id-model.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {normalizeNlPhone,buildSnapshot,matchCaller,primaryCategory,categoriesFor} from '../shared/caller-id-model.mjs';
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const leads=[{id:id(1),phone:'0612345678',contact_name:'TEST AI',company:'TEST AI BV',scan_type:'AI Efficiency Scan',source:'DW Marketing',status:'Warme lead'},{id:id(2),phone:'+31623456789',contact_name:'TEST ZEB',company:'TEST Energie BV',scan_type:'Zakelijke Energiecheck',source:'Buitendienst',status:'In gesprek'},{id:id(3),phone:'0031634567890',contact_name:'TEST DW',company:'TEST Marketing',source:'DW Marketing',status:'Nieuwe lead'},{id:id(4),phone:'06 1234 5678',contact_name:'TEST AI',company:'TEST AI BV',scan_type:'Zakelijke Energiecheck',source:'Buitendienst',status:'Nog bellen'}];
 const metadata={[id(2)]:{campaign:'Zakelijk Energie Besparen'},[id(4)]:{campaign:'Zakelijk Energie Besparen'}};
@@ -14,3 +14,5 @@ test('Match maakt of wijzigt geen records',()=>{const before=JSON.stringify({lea
 test('Actieve trajecten hebben voorrang boven afgesloten',()=>{const x=structuredClone(s);x.records[0].active=false;assert.equal(matchCaller(x,'0612345678',now).matches.length,1)});
 test('Categorieën alleen uit opdracht/bron, niet uit naam',()=>assert.equal(primaryCategory({contact_name:'AI ZEB KPN'},{}),'Nog indelen'));
 test('KPN en partner expliciete bron',()=>{assert.equal(primaryCategory({source:'KPN'},{}),'KPN');assert.equal(primaryCategory({source:'Partner / leverancier'},{}),'PARTNER / LEVERANCIER')});
+
+test('AI-scan binnen bestaand ZEB dossier toont beide categorieën',()=>{assert.deepEqual(categoriesFor({scan_type:'Zakelijke Energiecheck'},{campaign:'Zakelijk Energie Besparen',field_ai:'fictief-bezoek'}),['AI','ENERGIE / ZEB']);});

@@ -8,7 +8,7 @@ export function normalizeNlPhone(value){
 export function categoriesFor(lead={},meta={}){
  // Explicit commercial fields only. Never infer category from a person's name or notes.
  const subject=[lead.scan_type,meta.campaign,meta.interests].map(clean).join(' ').toLowerCase(),source=clean(lead.source).toLowerCase(),out=[];
- if(/\bai\b|efficiency|hermes/.test(subject))out.push('AI');
+ if(meta.field_ai||meta.woningcheck_data?.field_scans?.ai||/\bai\b|efficiency|hermes/.test(subject))out.push('AI');
  if(/zakelijk energie besparen|\bzeb\b|energiecheck|energie|compliance/.test(subject))out.push('ENERGIE / ZEB');
  if(/dw[ -]?marketing/.test(source)||/\bdw[ -]?marketing\b/.test(subject))out.push('DW MARKETING');
  if(/verduurzam|woningcheck|kozijn|isolatie|warmtepomp|thuisbatterij|zonnepanel|laadpaal|airco/.test(subject))out.push('VERDUURZAMEN');

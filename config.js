@@ -7,5 +7,6 @@ window.DW_CONFIG = Object.freeze({
  demoMode:false,processFieldReportsFunction:'process-field-reports',photoBucket:'',
  sourceLabel:'Buitendienst',platformLabel:'DW APP',defaultCampaign:'FIELD-APP-PRODUCTIE',
  campaignIntakeFunction:window.DW_RUNTIME_CONFIG?.campaignIntakeFunction||'',
+ documentGatewayBase:window.DW_RUNTIME_CONFIG?.documentGatewayBase||'',
  APP_VERSION:'5.13.11-visit-preparation'
 });

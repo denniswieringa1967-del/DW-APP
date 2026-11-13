@@ -501,6 +501,12 @@
     const state = await bootstrap({redirect:false});
     if (!state.ready) throw new Error(state.message || "Productieverbinding niet gereed.");
 
+    if(visit.energy_campaign&&visit.production_lead_id&&cfg.campaignIntakeFunction==='dw-field-visit'&&['ai','energie'].includes(visit.product)){
+      const data=visit.product==='ai'?normalizedAiData(visit):{answers:visit.answers||{},contact:visit.contact||{},consent:visit.consent||{}};
+      const result=await client().functions.invoke(cfg.campaignIntakeFunction,{body:{op:'save_scan',input:{lead_id:visit.production_lead_id,visit_id:visit.id,product:visit.product,data}}});
+      if(result.error||!result.data?.ok)throw Error(result.data?.error||result.error?.message||'Extra scan niet bevestigd.');
+      return {ok:true,dryRun:false,leadId:visit.production_lead_id,message:'Scan bij hetzelfde zakelijke dossier opgeslagen.'};
+    }
     assertProductionGuard(visit, state.profile);
 
     if(visit.energy_campaign&&!visit.production_lead_id)throw Error("Sla eerst de Energiecheck op; daarna blijft iedere scan bij hetzelfde dossier.");
@@ -548,9 +554,9 @@
   }
 
   async function saveCampaignVisit(visit) {
-    if(visit.existing_lead_candidate&&!visit.production_lead_id)throw Error('Bestaand dossier geselecteerd. Beveiligde serverkoppeling aan dit bezoek moet nog worden aangesloten; geen nieuwe lead gemaakt.');
+    if(visit.existing_lead_candidate&&!visit.production_lead_id&&cfg.campaignIntakeFunction!=='dw-field-visit')throw Error('Bestaand dossier geselecteerd. Beveiligde serverkoppeling aan dit bezoek moet nog worden aangesloten; geen nieuwe lead gemaakt.');
     const normalized=window.DW_CAMPAIGN_ROUTING.normalize(visit);
-    if(visit.production_lead_id&&!visit.energy_campaign_saved)throw Error('Dit bezoek heeft al een ander centraal dossier. De beveiligde uitbreiding van dit dossier moet eerst worden aangesloten; er wordt geen tweede lead gemaakt.');
+    if(visit.production_lead_id&&!visit.energy_campaign_saved&&cfg.campaignIntakeFunction!=='dw-field-visit')throw Error('Dit bezoek heeft al een ander centraal dossier. De beveiligde uitbreiding van dit dossier moet eerst worden aangesloten; er wordt geen tweede lead gemaakt.');
     if(visit.campaign_key!=='business_energy'){
       if(["live","pilot"].includes(mode()))throw Error("De particuliere campagneroute blijft afgeschermd; de bestaande Woningcheck en snelle interesselead blijven ongewijzigd.");
       return {ok:true,dryRun:true,payload:normalized};

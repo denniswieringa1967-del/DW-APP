@@ -16,7 +16,7 @@ Deno.serve(async req=>{
   const requestHeaders={apikey:key,Authorization:authorization};
   const profile=await fetch(base+'/rest/v1/field_users?select=user_id,is_active&user_id=eq.'+encodeURIComponent(owner),{headers:requestHeaders});if(!profile.ok)throw Error('Profile');const profiles=await profile.json();if(profiles.length!==1||profiles[0].is_active!==true)return answer(403,{error:'Account niet actief.'});
   async function read(table:string,select:string){const all=[];for(let offset=0;offset<10000;offset+=1000){const r=await fetch(base+'/rest/v1/'+table+'?select='+select+'&order='+(table==='leads'?'id':'lead_id')+'.asc&limit=1000&offset='+offset,{headers:requestHeaders});if(!r.ok)throw Error('Read');const page=await r.json();all.push(...page);if(page.length<1000)return all;}throw Error('Snapshot too large');}
-  const [leads,meta]=await Promise.all([read('leads','id,phone,contact_name,company,status,source,scan_type'),read('lead_meta','lead_id,campaign,interests')]);
+  const [leads,meta]=await Promise.all([read('leads','id,phone,contact_name,company,status,source,scan_type'),read('lead_meta','lead_id,campaign,interests,field_ai:woningcheck_data->field_scans->ai->>visit_id')]);
   return answer(200,buildSnapshot(leads,Object.fromEntries(meta.map(m=>[m.lead_id,m]))));
  }catch{return answer(503,{error:'Synchronisatie niet bevestigd. Geen gegevens gewijzigd.'});}
 });

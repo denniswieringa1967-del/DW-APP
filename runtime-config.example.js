@@ -1,2 +1,2 @@
-// Hosting generates runtime-config.js from its environment. Never put actual values in Git.
-window.DW_RUNTIME_CONFIG={integrationMode:'check',supabaseUrl:'',supabasePublishableKey:'',campaignIntakeFunction:''};
+// Hosting generates this outside Git; keep check mode until the protected owner-session test.
+window.DW_RUNTIME_CONFIG={integrationMode:'check',supabaseUrl:'',supabasePublishableKey:'',campaignIntakeFunction:'dw-field-visit',documentGatewayBase:''};

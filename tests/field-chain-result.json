@@ -1,0 +1,27 @@
+{
+  "passed": [
+    "Online and field have separate correct leads",
+    "Concurrent repeat same visit creates no duplicate",
+    "Existing lead links to new visit with normalized phone",
+    "Canonical phone dedup +31612345679",
+    "Canonical phone dedup 0612345679",
+    "Reused visit with wrong company rejected",
+    "Online source Google Ads",
+    "Field source Buitendienst",
+    "Both campaign and customer type preserved",
+    "All UTM adgroup keyword retained",
+    "Other lead cannot attach scan to wrong visit",
+    "Private bill upload received",
+    "Repeated upload dedup",
+    "Correct dossier opens stored PDF",
+    "Wrong dossier denied document A",
+    "Wrong visit denied document A",
+    "Wrong lead denied upload capability A",
+    "Wrong visit denied upload capability A",
+    "Short dossier can be completed",
+    "Additional scan remains same dossier",
+    "Callback preserved after scan and amendment",
+    "Document only at correct lead with filename and time"
+  ],
+  "cleanup": true
+}
