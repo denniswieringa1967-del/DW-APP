@@ -20,6 +20,9 @@
   function normalizedAiData(visit) {
     const a = visit.answers || {};
     return {
+      visit_contact: {...(visit.contact||{})},
+      customer_type: visit.route,
+      campaign: visit.campaign||"",
       sector: a.sector || "",
       admin_hours: a.admin_hours || "",
       manual_tasks: list(a.manual_tasks),
@@ -183,6 +186,7 @@
       photo_consent: !!visit.consent?.photos,
       product_intakes: intakes,
       report_checked: true,
+      visit_contact: {...(visit.contact||{})},
       field_visit_id: visit.id,
       field_worker: visit.employee || ""
     };
@@ -358,8 +362,8 @@
         .maybeSingle();
       if (error) throw error;
       return data?.lead_id || null;
-    } catch {
-      return null;
+    } catch (error) {
+      throw new Error("Bestaand bezoekdossier kon niet worden gecontroleerd. Er is geen nieuwe lead gemaakt.");
     }
   }
 
@@ -499,11 +503,16 @@
 
     assertProductionGuard(visit, state.profile);
 
+    if(visit.energy_campaign&&!visit.production_lead_id)throw Error("Sla eerst de Energiecheck op; daarna blijft iedere scan bij hetzelfde dossier.");
     const lead = await ensureLead(visit);
-    await dw().upsertLeadMeta(lead.id, leadMeta(visit));
+    if(visit.energy_campaign){
+      if(!visit.production_lead_id)throw Error('Het centrale zakelijke dossier ontbreekt.');
+      // A ZEB dossier is authoritative for campaign, documents, callback and acquisition.
+      // Only the separate scan data is amended under the existing authenticated RLS session.
+    }else await dw().upsertLeadMeta(lead.id, leadMeta(visit));
     await patchExtendedMeta(lead.id, visit, state.profile);
 
-    const notes = deterministicNotes(visit);
+    const notes = visit.energy_campaign ? null : deterministicNotes(visit);
     if (notes) {
       try { await dw().updateLead(lead.id, { notes }); }
       catch (error) { console.warn("Lead opgeslagen, notities konden niet op leads worden bijgewerkt.", error); }
@@ -538,7 +547,25 @@
     };
   }
 
+  async function saveCampaignVisit(visit) {
+    const normalized=window.DW_CAMPAIGN_ROUTING.normalize(visit);
+    if(visit.production_lead_id&&!visit.energy_campaign_saved)throw Error('Dit bezoek heeft al een ander centraal dossier. De beveiligde uitbreiding van dit dossier moet eerst worden aangesloten; er wordt geen tweede lead gemaakt.');
+    if(visit.campaign_key!=='business_energy'){
+      if(["live","pilot"].includes(mode()))throw Error("De particuliere campagneroute blijft afgeschermd; de bestaande Woningcheck en snelle interesselead blijven ongewijzigd.");
+      return {ok:true,dryRun:true,payload:normalized};
+    }
+    const input=window.DW_CAMPAIGN_ROUTING.toEnergyInput(visit);
+    if(mode()==='review'){
+      const r=await fetch('/api/field-leads',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-ZEB-Form':'energycheck-v1'},body:JSON.stringify(input)});const out=await r.json();if(!r.ok)throw Error(out.error||'Opslag niet bevestigd.');visit.energy_campaign_saved=true;return {...out,leadId:out.lead_id,reviewOnly:true};
+    }
+    if(["live","pilot"].includes(mode())){
+      if(!cfg.campaignIntakeFunction)throw Error("De beveiligde ontvangst is nog niet geplaatst. Concept blijft bewaard; niets doorgestuurd.");
+      const {data,error}=await client().functions.invoke(cfg.campaignIntakeFunction,{body:{op:'ingest',channel:'field',input}});if(error||!data?.ok)throw Error(data?.error||error?.message||'Opslag niet bevestigd.');visit.energy_campaign_saved=true;return {...data,leadId:data.lead_id};
+    }
+    return {ok:true,dryRun:true,payload:normalized};
+  }
   window.DW_PRODUCTION = {
+    saveCampaignVisit,
     mode,
     bootstrap,
     systemCheck,
@@ -551,3 +578,4 @@
     mapEnergyNotes: energyReadableNotes
   };
 })();
+
