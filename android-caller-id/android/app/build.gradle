@@ -3,7 +3,7 @@ android {
  namespace 'nl.dwmarketing.callerid'
  compileSdk 35
  defaultConfig {
-  applicationId 'nl.dwmarketing.callerid'; minSdk 29; targetSdk 35; versionCode 1; versionName '0.1-preparation'
+  applicationId 'nl.dwmarketing.callerid'; minSdk 29; targetSdk 35; versionCode 3; versionName '0.3-test'
   // Public project values and the verified production dossier-bridge URL must be supplied at build time.
   buildConfigField 'String', 'BACKEND', '"' + (project.findProperty('dwBackend') ?: '') + '"'
   buildConfigField 'String', 'PUBLIC_KEY', '"' + (project.findProperty('dwPublicKey') ?: '') + '"'
@@ -12,3 +12,4 @@ android {
  buildFeatures { buildConfig true }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
+
