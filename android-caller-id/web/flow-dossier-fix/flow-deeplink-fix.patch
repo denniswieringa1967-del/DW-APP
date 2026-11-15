@@ -1,0 +1,34 @@
+--- flow/app.js
++++ flow/app.js
+@@ -2035,6 +2035,10 @@
+ }
+ 
+ async function boot() {
++  // Preserve the requested dossier before asynchronous loading or view navigation.
++  const entryParams = new URLSearchParams(location.search);
++  const requestedView = entryParams.get("view");
++  const requestedLead = entryParams.get("lead");
+   try {
+     const session = await window.DW_DATA.getSession();
+     if (!session) { location.href = "login.html"; return; }
+@@ -2043,9 +2047,7 @@
+     badge.classList.add(window.DW_DATA.mode);
+     await loadLeads();
+ 
+-    const params = new URLSearchParams(location.search);
+-    const requestedView = params.get("view");
+-    const requestedLead = params.get("lead");
++    // Entry parameters were captured before loading the existing session and leads.
+ 
+     if (requestedView && document.getElementById(requestedView)) {
+       openView(requestedView);
+@@ -2331,7 +2333,8 @@
+ 
+ // V41: open a requested internal view from sidebar links on standalone modules.
+ const dwViewFromQuery = new URLSearchParams(window.location.search).get("view");
+-if (dwViewFromQuery) {
++// A dossier request is handled once by boot(), after its lead data has loaded.
++if (dwViewFromQuery && !new URLSearchParams(window.location.search).get("lead")) {
+   setTimeout(() => { try { openView(dwViewFromQuery); } catch(e) {} }, 0);
+ }
+ 
