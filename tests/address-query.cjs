@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict'),lookup=require('../business-lookup.js');
+const docs=[{type:'adres',straatnaam:'Teststraat',huisnummer:1,postcode:'1234AB',woonplaatsnaam:'Teststad'},{type:'adres',straatnaam:'Teststraat',huisnummer:1,postcode:'2345CD',woonplaatsnaam:'Andere plaats'}];
+test('Business name is not sent to the address provider',async()=>{let called=false;await assert.rejects(lookup.addressSearch('DW Marketing',{fetcher:async()=>{called=true;}}),/bedrijfsnaam apart/);assert.equal(called,false);});
+test('Postcode and house number exclude suggestions in other places',async()=>{const out=await lookup.addressSearch('1234 AB 1',{fetcher:async()=>({ok:true,json:async()=>({response:{docs}})})});assert.equal(out.length,1);assert.equal(out[0].contact.city,'Teststad');assert.equal(out[0].contact.company,'');});
+test('Street search requires matching street, house and town',async()=>{const out=await lookup.addressSearch('Teststraat 1 Teststad',{fetcher:async()=>({ok:true,json:async()=>({response:{docs}})})});assert.equal(out.length,1);assert.equal(out[0].contact.city,'Teststad');});
