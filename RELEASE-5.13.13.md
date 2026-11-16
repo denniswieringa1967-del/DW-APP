@@ -1,17 +1,14 @@
-# DW APP 5.13.13 - release prepared, not deployed
+# DW APP 5.13.13 - published 16 November 2026
 
-The owner physically verified the private hosted route on laptop and Samsung: business selection, Energiecheck save, exact DW Flow dossier link, additional AI scan in the same lead/visit, retained energy usage and callback, reopening and returning to the Energiecheck. Two isolated test records were removed, original three leads and metadata matched their baseline hashes, and temporary review access was closed.
+The owner explicitly approved publication on main/GitHub Pages and owner-only DW Flow storage after the automatic approval review initially rejected a live backend change under the older branch-only restriction. The subsequent approved deployment succeeded.
 
-This release ports saved-visit navigation and one document-status block to the normal app. It also handles repeated field saves through the existing identity-checked intake followed by optimistic-version amendment, accepting the server's metadata confirmation. Changed callbacks use a separate optimistic followup operation. Documents are explicitly unavailable; no gateway is configured.
+Public app: https://denniswieringa1967-del.github.io/DW-APP/
+Main release commit: acbb633d2026e44d673061cde626f723ff01146a. Fourteen app/login assets copied selectively from the reviewed branch; native Android artifacts and unrelated backend/test files were not published to main. GitHub Pages build and deployment succeeded; all 14 live asset Git blob hashes match the reviewed release.
 
-GitHub Pages cannot generate runtime configuration. Each login/app page now loads the existing owned https://dw-marketing.nl/flow/config.js, then runtime-bootstrap.js validates the expected public project and a publishable/anon browser key. No actual keys are committed. Failure leaves the client unconfigured/check-only. Service worker private-data exclusions remain, a missing image was removed from precache, and cache version increases.
+Supabase dw-field-visit version 5 adds only the owned Pages Origin to the existing allowlist. JWT verification stays enabled. Missing browser authentication returns HTTP 401; direct private RPC access remains denied to anon and authenticated roles. Active owner configuration was verified before enabling production field writes. Review access is disabled and the website gateway hash is empty, so website intake was not activated. Original three leads and lead_meta exactly match their pre-test baseline digests.
 
-Local validation: 31 field/runtime/repeated-save checks pass; JavaScript syntax checks pass. Public production-account end-to-end behavior is not yet verified.
+The public runtime loads the existing owned Flow public browser configuration outside Git; actual runtime evaluation confirms live field mode, dw-field-visit and an empty document gateway. No actual API key was committed. Annual-bill upload remains unavailable with an explicit UI message. Existing document controls were not enabled.
 
-Pending actions for the existing live app:
-1. Add only the owned GitHub Pages Origin https://denniswieringa1967-del.github.io to dw-field-visit's exact allowlist, retaining JWT verification and the owner check. The attempted live Edge deployment was rejected by automatic approval review on 16 November, citing earlier branch-only/no-publication authorization; no function update occurred.
-2. Enable owner-only field production writes in dw_field_private.settings after approval. Keep review disabled and gateway_hash empty so website/partner intake is not activated by this app release. No document secret or sanitizer change.
-3. Apply the reviewed app source to main (the existing Pages publishing source), without publishing native Android artifacts or changing any other website.
-4. Verify deployed asset hashes, actual origin preflight, denied anonymous access and the user's normal account. Do not claim public daily readiness until checked.
+Private hosted laptop and Samsung tests verified business selection, exact dossier opening, repeated corrections, AI attached to the same lead/visit, retained 25000 kWh/4000 m3 and callback, reopening and switching back. Two fictional test dossiers and temporary test credentials were removed. Local release validation passed 31 checks plus JavaScript syntax checks.
 
-Rollback: retain main commit 178845b7d6add5aecdf037695e7ae4ea05a23e2d and the current Edge version. Production_enabled can return to false; review stays closed. Existing customer data must not change during deployment.
+The owner still needs to reopen the normal installed/public app to verify the current signed-in browser session. No fresh public production-account end-to-end write has been claimed. Rollback: main 178845b7d6add5aecdf037695e7ae4ea05a23e2d; field production_enabled can be returned to false with review remaining closed.
