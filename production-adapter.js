@@ -553,6 +553,22 @@
     };
   }
 
+  async function updateRepeatedVisit(visit,input,result) {
+    if(!result.duplicate||!visit.production_lead_id)return;
+    const id=result.lead_id;
+    if(id!==visit.production_lead_id)throw Error('Dossierkoppeling niet bevestigd.');
+    const meta=(await dw().listLeadMeta())[id];
+    if(meta?.woningcheck_data?.field_visit?.visit_id!==visit.id)throw Error('Dit bezoek hoort niet bij het bestaande dossier.');
+    const allowed=['contact_name','email','street','house_number','addition','postal_code','city','sector','energy_type','electricity_kwh','electricity_unknown','gas_m3','gas_unknown','supplier','contract_end_date','contact_window'];
+    const fields=Object.fromEntries(allowed.filter(k=>Object.prototype.hasOwnProperty.call(input,k)).map(k=>[k,input[k]]));
+    const updated=await client().functions.invoke(cfg.campaignIntakeFunction,{body:{op:'amend',lead_id:id,previous_version:meta.crm_followup?.version,fields}});
+    if(updated.error||updated.data?.lead_id!==id)throw Error(updated.data?.error||updated.error?.message||'Bijwerken niet bevestigd.');
+    if((input.callback_at||'')!==(meta.crm_followup?.callbackAt||'')){
+      const followup=await client().functions.invoke(cfg.campaignIntakeFunction,{body:{op:'followup',input:{lead_id:id,previous_version:updated.data.crm_followup?.version,stage:meta.woningcheck_data.business_energy.stage||'Nieuwe lead',callback_at:input.callback_at||'',next_action:meta.crm_followup?.nextAction||'Terugbellen'}}});
+      if(followup.error||followup.data?.lead_id!==id)throw Error(followup.data?.error||followup.error?.message||'Terugbelmoment niet bevestigd.');
+    }
+  }
+
   async function saveCampaignVisit(visit) {
     if(visit.existing_lead_candidate&&!visit.production_lead_id&&cfg.campaignIntakeFunction!=='dw-field-visit')throw Error('Bestaand dossier geselecteerd. Beveiligde serverkoppeling aan dit bezoek moet nog worden aangesloten; geen nieuwe lead gemaakt.');
     const normalized=window.DW_CAMPAIGN_ROUTING.normalize(visit);
@@ -567,7 +583,7 @@
     }
     if(["live","pilot"].includes(mode())){
       if(!cfg.campaignIntakeFunction)throw Error("De beveiligde ontvangst is nog niet geplaatst. Concept blijft bewaard; niets doorgestuurd.");
-      const {data,error}=await client().functions.invoke(cfg.campaignIntakeFunction,{body:{op:'ingest',channel:'field',input}});if(error||!data?.ok)throw Error(data?.error||error?.message||'Opslag niet bevestigd.');visit.energy_campaign_saved=true;return {...data,leadId:data.lead_id};
+      const {data,error}=await client().functions.invoke(cfg.campaignIntakeFunction,{body:{op:'ingest',channel:'field',input}});if(error||!data?.ok)throw Error(data?.error||error?.message||'Opslag niet bevestigd.');await updateRepeatedVisit(visit,input,data);visit.energy_campaign_saved=true;return {...data,leadId:data.lead_id};
     }
     return {ok:true,dryRun:true,payload:normalized};
   }

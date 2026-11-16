@@ -8,7 +8,7 @@ Deno.serve(async(req)=>{
  const admin=createClient(Deno.env.get('SUPABASE_URL')||'',Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'',{auth:{persistSession:false,autoRefreshToken:false}});
  const ctx={supabaseAdmin:admin};
  const json=(body,status=200)=>Response.json(body,{status,headers:{...baseHeaders,...(req.headers.get('Origin')?{'Access-Control-Allow-Origin':req.headers.get('Origin'),'Vary':'Origin'}:{})}});
- const origin=req.headers.get('Origin');const origins=(Deno.env.get('DW_FIELD_ALLOWED_ORIGINS')||'').split(',').map(s=>s.trim()).filter(Boolean);
+ const origin=req.headers.get('Origin');const origins=[...new Set(['https://denniswieringa1967-del.github.io',...(Deno.env.get('DW_FIELD_ALLOWED_ORIGINS')||'').split(',').map(s=>s.trim()).filter(Boolean)])];
  if(origin&&!origins.includes(origin))return json({error:'Deze herkomst is niet toegestaan'},403);
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:{...baseHeaders,'Access-Control-Allow-Origin':origin||'null','Access-Control-Allow-Methods':'POST','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Vary':'Origin'}});
  if(req.method!=='POST')return json({error:'POST vereist'},405);

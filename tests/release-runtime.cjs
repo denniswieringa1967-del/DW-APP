@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const code=fs.readFileSync(__dirname+'/../runtime-bootstrap.js','utf8');
+function run(config){const window={DW_CONFIG:config};vm.runInNewContext(code,{window,JSON,atob,Object});return window.DW_RUNTIME_CONFIG;}
+test('Owned public runtime enables field route while documents stay disabled',()=>{const r=run({supabaseUrl:'https://bsqfobdjzszompyvgxxk.supabase.co',supabaseAnonKey:'sb_publishable_fixture'});assert.equal(r.integrationMode,'live');assert.equal(r.campaignIntakeFunction,'dw-field-visit');assert.equal(r.documentGatewayBase,'');});
+test('Missing runtime, wrong project and server secrets fail closed',()=>{for(const c of [{},{supabaseUrl:'https://other.invalid',supabaseAnonKey:'sb_publishable_fixture'},{supabaseUrl:'https://bsqfobdjzszompyvgxxk.supabase.co',supabaseAnonKey:'sb_secret_fixture'}])assert.equal(run(c).integrationMode,'check');});
+test('Login pages load runtime before creating their client',()=>{for(const name of ['index.html','beheer-login.html','medewerker-login.html','field-activate.html']){const s=fs.readFileSync(__dirname+'/../'+name,'utf8');assert(s.indexOf('https://dw-marketing.nl/flow/config.js')<s.indexOf('src="config.js"'));assert(s.includes('src="runtime-bootstrap.js"'));}});
