@@ -3,7 +3,7 @@ import android.app.*;import android.app.role.*;import android.os.*;import androi
 public final class SetupActivity extends Activity {
  private TextView status;private EditText email,password;private boolean busy;
  @Override public void onCreate(Bundle state){super.onCreate(state);getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(32,48,32,32);ScrollView scroll=new ScrollView(this);scroll.addView(box);setContentView(scroll);
-  label(box,"DW Nummerherkenning TEST 0.3 · alleen Dennis");
+  label(box,"DW Nummerherkenning TEST 0.4 · alleen Dennis");
   status=new TextView(this);status.setTextSize(18);status.setPadding(0,12,0,12);box.addView(status);showSnapshot();
   label(box,"Samsung Telefoon blijft je bel-app. Herkenning gebruikt uitsluitend je eigen DW Flow. Geen blokkeren, opnemen of externe nummerdienst.");
   button(box,"1. Apparaat koppelen: openbare sleutel kopiëren",()->{try{String pub=PrivateStore.publicKey();getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("DW openbare apparaatcode",pub));status.setText("Openbare apparaatcode gekopieerd. Koppel deze aan je eigenaarsaccount voordat je synchroniseert.");}catch(Exception e){status.setText("Apparaatsleutel niet beschikbaar.");}});

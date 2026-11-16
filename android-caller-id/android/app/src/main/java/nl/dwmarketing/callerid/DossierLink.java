@@ -1,6 +1,10 @@
 package nl.dwmarketing.callerid;
 import java.net.URI;
 final class DossierLink {
+ static String fresh(String configured,String id,long openedAt)throws Exception{
+  if(openedAt<=0)throw new IllegalArgumentException("Ongeldig openingsmoment");
+  return build(configured,id)+"&caller=android-04&open="+openedAt;
+ }
  static String build(String configured,String id)throws Exception{
   if(id==null||!id.matches("[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}"))throw new IllegalArgumentException("Ongeldig dossier");
   URI root=new URI(configured);
