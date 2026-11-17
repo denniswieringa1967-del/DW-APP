@@ -43,6 +43,13 @@ Deno.serve(async(req)=>{
    if(!bucket){const {error}=await ctx.supabaseAdmin.storage.createBucket(BUCKET,{public:false,fileSizeLimit:8388608,allowedMimeTypes:['application/pdf']});if(error)throw error;}
    return json({ok:true,private:true});
   }
+  if(op==='check_upload'){
+   // Read-only preflight before the PHP rasterizer touches an untrusted document.
+   await rpc('authorize_sanitizer',{proof_hash:await sha(req.headers.get('X-DW-Sanitizer')||'')});
+   const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
+   if(typeof b.token!=='string'||!/^[a-f0-9-]{72}$/i.test(b.token)||!uuid.test(b.lead_id||'')||!uuid.test(b.visit_id||''))return json({error:'Ongeldige aanlevering'},400);
+   return json(await rpc('check_upload',{lead_id:b.lead_id,visit_id:b.visit_id,token_hash:await sha(b.token)}));
+  }
   if(op==='upload'){
    // Raw browser PDFs are never accepted: only the bounded server rasterizer may call this operation.
    const sanitizer=req.headers.get('X-DW-Sanitizer')||'';
@@ -70,3 +77,4 @@ Deno.serve(async(req)=>{
   return json({error:'Onbekende actie'},400);
  }catch(e){const code=e?.code;return json({error:code==='42501'?'Geen toegang tot deze aanvraag of dit document':code==='23505'?'Aanvraag-ID bestaat met andere gegevens':code==='40001'?'Dossier gewijzigd; ververs eerst':e instanceof SyntaxError?'Ongeldige aanvraag':e.message||'Verwerking niet bevestigd'},code==='42501'?403:code==='23505'||code==='40001'?409:400);}
 });
+

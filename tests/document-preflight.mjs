@@ -1,0 +1,12 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {webcrypto} from 'node:crypto';
+const source=fs.readFileSync(new URL('../backend/field/index.ts',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
+let handler,calls=[],validSanitizer=true,validBinding=true,storageCalls=0;
+const admin={auth:{getUser:async()=>({data:{user:{id:'owner'}},error:null})},rpc:async(name,{op,p})=>{calls.push({op,p});if(op==='ping')return{data:{owner_id:'owner',production_enabled:true},error:null};if(op==='authorize_sanitizer'&&!validSanitizer)return{data:null,error:{code:'42501',message:'Denied'}};if(op==='check_upload'&&!validBinding)return{data:null,error:{code:'42501',message:'Wrong visit'}};return{data:{ok:true},error:null}},storage:{from:()=>{storageCalls++;throw Error('Preflight must not touch storage')}}};
+const context={Deno:{serve:f=>handler=f,env:{get:n=>n==='SUPABASE_URL'?'https://example.invalid':'FAKE_SERVER_KEY'}},createClient:()=>admin,normalize:()=>{},sha:async v=>Buffer.from(await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode(v))).toString('hex'),Response,Request,TextDecoder,Uint8Array,atob,crypto:webcrypto};vm.createContext(context);vm.runInContext(source,context);
+const body={op:'check_upload',lead_id:webcrypto.randomUUID(),visit_id:webcrypto.randomUUID(),token:webcrypto.randomUUID()+webcrypto.randomUUID()};
+async function call(b=body,h={}){calls=[];return handler(new Request('https://example.invalid',{method:'POST',headers:{Authorization:'Bearer FAKE_OWNER_SESSION','Content-Type':'application/json','X-DW-Sanitizer':'FAKE_SANITIZER',...h},body:JSON.stringify(b)}))}
+assert.equal((await call()).status,200);assert.deepEqual(calls.map(c=>c.op),['ping','authorize_sanitizer','check_upload']);assert.equal(calls[2].p.visit_id,body.visit_id);assert.notEqual(calls[2].p.token_hash,body.token);assert.equal(storageCalls,0);
+validSanitizer=false;assert.equal((await call()).status,403);assert.ok(!calls.some(c=>c.op==='check_upload'));validSanitizer=true;
+validBinding=false;assert.equal((await call()).status,403);validBinding=true;
+assert.equal((await call({...body,visit_id:''})).status,400);assert.equal((await call({...body,token:'bad'})).status,400);assert.equal((await call(body,{Origin:'https://untrusted.invalid'})).status,403);
+console.log('PASS read-only preflight: sanitizer, binding, validation, origin and zero Storage writes');
