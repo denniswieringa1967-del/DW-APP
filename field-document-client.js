@@ -11,7 +11,8 @@
   if(meta.crm_followup?.contactConfirmed!==true)await invoke('followup',{input:{lead_id:leadId,previous_version:meta.crm_followup?.version,stage:'In gesprek',note:'Vrijwillige documentaanlevering bevestigd tijdens bedrijfsbezoek.'}});
   const cap=await invoke('issue_upload',{lead_id:leadId,visit_id:visitId});
   const form=new FormData();form.append('file',file);form.append('lead_id',leadId);form.append('visit_id',visitId);form.append('token',cap.token);form.append('consent','true');
-  const r=await fetch(path,{method:'POST',credentials:'omit',headers:{Authorization:'Bearer '+await session()},body:form});const result=await r.json();if(!r.ok||!result.document_id)throw Error(result.error||'Ontvangst niet bevestigd.');return result;
+  const authorization='Bearer '+await session();
+  const r=await fetch(path,{method:'POST',credentials:'omit',headers:{Authorization:authorization,'X-DW-Authorization':authorization},body:form});const result=await r.json();if(!r.ok||!result.document_id)throw Error(result.error||'Ontvangst niet bevestigd.');return result;
  }
  root.DW_FIELD_DOCUMENTS=Object.freeze({gateway,upload});
 })(window);
